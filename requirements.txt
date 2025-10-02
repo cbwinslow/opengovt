@@ -1,0 +1,6 @@
+requests
+aiohttp
+tqdm
+psycopg2-binary
+lxml
+prometheus-client

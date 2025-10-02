@@ -1,0 +1,16 @@
+{
+  "govinfo_templates_expanded": [
+    "https://www.govinfo.gov/bulkdata/BILLSTATUS/118/hr/BILLSTATUS-118hr.zip",
+    "https://www.govinfo.gov/bulkdata/ROLLCALLVOTE/118/senate/ROLLCALLVOTE-118-senate.zip"
+  ],
+  "govinfo_index_discovered": [
+    "https://www.govinfo.gov/bulkdata/BILLSTATUS/118/hr/BILLSTATUS-118hr.zip"
+  ],
+  "congress_legislators": [
+    "https://theunitedstates.io/congress-legislators/legislators-current.json"
+  ],
+  "aggregate_urls": [
+    "https://www.govinfo.gov/bulkdata/BILLSTATUS/118/hr/BILLSTATUS-118hr.zip",
+    "https://theunitedstates.io/congress-legislators/legislators-current.json"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "failures": [
+    {
+      "url": "https://open.pluralpolicy.com/data/unknown-state.zip",
+      "attempts": 1,
+      "first_failed": "2025-10-02T01:00:00Z",
+      "last_attempted": "2025-10-02T01:00:00Z",
+      "last_error": "404 Not Found"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'congress_pipeline'
+    static_configs:
+      - targets: ['pipeline:8080']  # pipeline should expose metrics endpoint at /metrics

@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: congress
+      POSTGRES_PASSWORD: congress
+      POSTGRES_DB: congress
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=postgresql://congress:congress@postgres:5432/congress
+      - CONGRESS_LOG_DIR=/var/log/congress
+    volumes:
+      - ./bulk_data:/usr/src/app/bulk_data
+      - ./logs:/var/log/congress
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"  # Prometheus metrics
+      - "8080:8080"  # HTTP control
+
+volumes:
+  pgdata:
