@@ -37,15 +37,15 @@ python complete_analysis_pipeline.py
 
 ## Prerequisites
 
-1. Database with bills data:
+1. Database with bills data (run from project root):
 ```bash
-psql $DATABASE_URL -f ../app/db/migrations/001_init.sql
-psql $DATABASE_URL -f ../app/db/migrations/002_analysis_tables.sql
+psql $DATABASE_URL -f app/db/migrations/001_init.sql
+psql $DATABASE_URL -f app/db/migrations/002_analysis_tables.sql
 ```
 
-2. Install dependencies:
+2. Install dependencies (run from project root):
 ```bash
-pip install -r ../requirements-analysis.txt
+pip install -r requirements-analysis.txt
 python -m spacy download en_core_web_sm
 ```
 

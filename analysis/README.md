@@ -58,6 +58,8 @@ score = analyzer.analyze_voting_consistency(person_id=1, votes=votes)
 
 ## Installation
 
+Run these commands from the project root directory:
+
 ```bash
 # Install dependencies
 pip install -r requirements-analysis.txt
