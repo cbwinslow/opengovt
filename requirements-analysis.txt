@@ -1,0 +1,40 @@
+# Analysis Module Dependencies
+# Install with: pip install -r requirements-analysis.txt
+
+# Core NLP and ML libraries
+spacy>=3.7.0
+sentence-transformers>=2.2.0
+transformers>=4.30.0
+torch>=2.0.0
+
+# Sentiment analysis
+vaderSentiment>=3.3.2
+textblob>=0.17.1
+
+# Text processing
+nltk>=3.8.1
+
+# Vector operations
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Optional: GPU acceleration (uncomment if you have CUDA)
+# torch-cuda>=2.0.0
+
+# Optional: Advanced vector database support
+# pgvector>=0.2.0  # PostgreSQL vector extension client
+# pinecone-client>=2.2.0  # Pinecone vector database
+# weaviate-client>=3.20.0  # Weaviate vector database
+
+# Data manipulation
+pandas>=2.0.0
+
+# Progress bars
+tqdm>=4.65.0
+
+# Download spaCy model after installation:
+# python -m spacy download en_core_web_sm
+# python -m spacy download en_core_web_lg  # Optional: larger model with word vectors
+
+# Download NLTK data after installation:
+# python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
