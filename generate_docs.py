@@ -70,7 +70,7 @@ class RepoAnalyzer:
             functions = re.findall(r'^def\s+(\w+)', content, re.MULTILINE)
             
             # Extract docstring if present
-            docstring_match = re.search(r'^["\']{{3}}(.+?)["\']{{3}}', content, re.MULTILINE | re.DOTALL)
+            docstring_match = re.search(r'^["\']{3}(.+?)["\']{3}', content, re.MULTILINE | re.DOTALL)
             docstring = docstring_match.group(1).strip() if docstring_match else ""
             
             self.file_stats[str(file_path)] = {
