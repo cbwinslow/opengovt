@@ -1,6 +1,19 @@
 ```markdown
 # cbw Congress Bulk Ingest - Multi-file Package
 
+## 📖 Documentation
+
+**For comprehensive documentation of all files in this repository, see [COMPREHENSIVE_FILE_GUIDE.md](COMPREHENSIVE_FILE_GUIDE.md)**
+
+This guide includes:
+- Detailed documentation of every script with headers (Name, Date, Summary, Inputs, Outputs, Parameters, Changelog)
+- Complete data flow architecture diagrams
+- File relationships and dependencies
+- Module interaction diagrams
+- Quick reference for common tasks
+
+---
+
 Overview
 - Purpose: End-to-end OOP pipeline to discover, download, extract, parse, normalize,
   and ingest U.S. legislative bulk data (govinfo / congress.gov, GovTrack, OpenStates,
