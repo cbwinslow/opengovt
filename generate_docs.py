@@ -35,7 +35,7 @@ class RepoAnalyzer:
     def scan_repository(self):
         """Scan repository for Python files and categorize them."""
         # Directories to exclude
-        exclude_dirs = {'.git', '.venv', '__pycache__', 'node_modules', 
+        exclude_dirs = {'.git', '.venv', 'venv', '.env', 'virtualenv', '.tox', '__pycache__', 'node_modules',
                        '.pytest_cache', 'build', 'dist', 'env'}
         
         # Find all Python files
