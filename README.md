@@ -3,10 +3,30 @@
 
 ## 📚 Documentation
 
-- **[SCRIPT_EVALUATION.md](SCRIPT_EVALUATION.md)** - Comprehensive analysis of all 46 scripts, functions, and interactions (1,178 lines)
-- **[SCRIPT_INDEX.md](SCRIPT_INDEX.md)** - Quick reference guide with script catalog and common workflows (170 lines)
+- **[index.html](index.html)** - 🌐 **Interactive web browser** for all scripts (auto-generated)
+- **[SCRIPT_INDEX.md](SCRIPT_INDEX.md)** - Quick reference guide with script catalog (auto-generated)
+- **[SCRIPT_EVALUATION.md](SCRIPT_EVALUATION.md)** - Comprehensive analysis of all scripts and functions
 - **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Project organization and data models
 - **[docs/](docs/)** - Detailed documentation on analysis modules, APIs, and queries
+
+### 🔄 Auto-Generated Documentation
+
+The documentation automatically adjusts when files are added, removed, or modified:
+
+```bash
+# Regenerate documentation after changes
+python generate_docs.py
+```
+
+This updates:
+- `SCRIPT_INDEX.md` - Markdown reference with current stats
+- `index.html` - Interactive web view with search functionality
+
+View the interactive HTML:
+```bash
+python -m http.server 8000
+# Open http://localhost:8000/index.html in your browser
+```
 
 Overview
 - Purpose: End-to-end OOP pipeline to discover, download, extract, parse, normalize,

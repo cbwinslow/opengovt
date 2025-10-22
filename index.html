@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGovt Repository - Script Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .header .timestamp {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+        
+        .stat-card .label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .search-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .category {
+            background: white;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .category-header {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-header:hover {
+            background: #e9ecef;
+        }
+        
+        .category-header h2 {
+            font-size: 1.3rem;
+            color: #333;
+        }
+        
+        .category-header .count {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .category-content {
+            display: none;
+        }
+        
+        .category.expanded .category-content {
+            display: block;
+        }
+        
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .file-table thead {
+            background: #f8f9fa;
+        }
+        
+        .file-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .file-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .file-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .file-name {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .file-name:hover {
+            text-decoration: underline;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+        }
+        
+        .badge-classes {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .badge-functions {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s;
+        }
+        
+        .category.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏛️ OpenGovt Repository</h1>
+        <p>Interactive Script Browser & Documentation</p>
+        <div class="timestamp">Generated: 2025-10-22 04:06:49</div>
+    </div>
+    
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <span class="number">47</span>
+                <span class="label">Python Files</span>
+            </div>
+            <div class="stat-card">
+                <span class="number">16,657</span>
+                <span class="label">Lines of Code</span>
+            </div>
+            <div class="stat-card">
+                <span class="number">103</span>
+                <span class="label">Classes</span>
+            </div>
+            <div class="stat-card">
+                <span class="number">164</span>
+                <span class="label">Functions</span>
+            </div>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Search for files, classes, or functions..." onkeyup="filterFiles()">
+        </div>
+
+        <div class="category expanded" data-category="Alternative Implementations">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> Alternative Implementations</h2>
+                <span class="count">7 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file="congress_bulk_ingest.py" data-classes="" data-functions="log download_file extract_zip extract_tar parse_bill_xml parse_vote_xml parse_member_json summarize_data main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_bulk_ingest.py</a>
+                            </td>
+                            <td>180</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">9 functions</span>
+                                <br><small style="color: #666;">log, download_file, extract_zip, extract_tar, parse_bill_xml...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_bulk_ingest_all.py" data-classes="" data-functions="current_congress_from_date congress_first_year http_get_text expand_govinfo_templates discover_govinfo_index discover_directory_links discover_govtrack discover_openstates discover_data_gov_ckan assemble_bulk_url_dict parse_args save_json main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_bulk_ingest_all.py</a>
+                            </td>
+                            <td>485</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">13 functions</span>
+                                <br><small style="color: #666;">current_congress_from_date, congress_first_year, http_get_text, expand_govinfo_templates, discover_govinfo_index...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_bulk_ingest_full.py" data-classes="" data-functions="now_congress congress_first_year http_get_text is_likely_archive expand_govinfo_templates discover_govinfo_index discover_directory_links discover_govtrack discover_openstates discover_data_gov_ckan assemble_bulk_url_dict validate_urls_head extract_archive parse_args save_json main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_bulk_ingest_full.py</a>
+                            </td>
+                            <td>595</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">16 functions</span>
+                                <br><small style="color: #666;">now_congress, congress_first_year, http_get_text, is_likely_archive, expand_govinfo_templates...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_bulk_pipeline.py" data-classes="" data-functions="now_congress congress_first_year http_get_text is_likely_archive expand_govinfo_templates discover_govinfo_index discover_govtrack discover_openstates assemble_bulk_url_dict validate_urls_head extract_archive parse_bill_xml_simple parse_vote_xml_simple parse_legislators_json db_connect ensure_schema upsert_bill upsert_vote upsert_legislator post_process_and_ingest load_retry_report save_retry_report schedule_retries parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_bulk_pipeline.py</a>
+                            </td>
+                            <td>773</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">25 functions</span>
+                                <br><small style="color: #666;">now_congress, congress_first_year, http_get_text, is_likely_archive, expand_govinfo_templates...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_bulk_urls.py" data-classes="" data-functions="expand_govinfo_templates congress_to_first_year discover_govinfo_index discover_directory_links assemble_bulk_url_dict save_bulk_urls print_summary main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_bulk_urls.py</a>
+                            </td>
+                            <td>369</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">8 functions</span>
+                                <br><small style="color: #666;">expand_govinfo_templates, congress_to_first_year, discover_govinfo_index, discover_directory_links, assemble_bulk_url_dict...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_full_pipeline.py" data-classes="Config DiscoveryManager Validator DownloadManager Extractor ParserNormalizer DBManager RetryManager HTTPControlServer Pipeline" data-functions="configure_logger adapter_for labeled trace_async save_json_atomic load_json_safe ensure_dirs rotate_logs init_metrics parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_full_pipeline.py</a>
+                            </td>
+                            <td>1220</td>
+                            <td>
+                                <span class="badge badge-classes">10 classes</span>
+                                <br><small style="color: #666;">Config, DiscoveryManager, Validator, DownloadManager, Extractor...</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">11 functions</span>
+                                <br><small style="color: #666;">configure_logger, adapter_for, labeled, trace_async, save_json_atomic...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_pipeline_oop.py" data-classes="Config DiscoveryManager Validator DownloadManager Extractor ParserNormalizer DBIngestor RetryManager Pipeline" data-functions="parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_pipeline_oop.py</a>
+                            </td>
+                            <td>769</td>
+                            <td>
+                                <span class="badge badge-classes">9 classes</span>
+                                <br><small style="color: #666;">Config, DiscoveryManager, Validator, DownloadManager, Extractor...</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">2 functions</span>
+                                <br><small style="color: #666;">parse_args, main</small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="category expanded" data-category="Analysis Modules (analysis/)">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> Analysis Modules (analysis/)</h2>
+                <span class="count">6 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file="analysis/__init__.py" data-classes="" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">analysis/__init__.py</a>
+                            </td>
+                            <td>33</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="analysis/bias_detector.py" data-classes="BiasScore BiasDetector" data-functions="detect_political_bias">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">analysis/bias_detector.py</a>
+                            </td>
+                            <td>350</td>
+                            <td>
+                                <span class="badge badge-classes">2 classes</span>
+                                <br><small style="color: #666;">BiasScore, BiasDetector</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">1 functions</span>
+                                <br><small style="color: #666;">detect_political_bias</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="analysis/consistency_analyzer.py" data-classes="ConsistencyScore VoteRecord ConsistencyAnalyzer" data-functions="analyze_voting_consistency">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">analysis/consistency_analyzer.py</a>
+                            </td>
+                            <td>407</td>
+                            <td>
+                                <span class="badge badge-classes">3 classes</span>
+                                <br><small style="color: #666;">ConsistencyScore, VoteRecord, ConsistencyAnalyzer</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">1 functions</span>
+                                <br><small style="color: #666;">analyze_voting_consistency</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="analysis/embeddings.py" data-classes="BillEmbeddings SpeechEmbeddings EmbeddingsGenerator" data-functions="create_embeddings compute_bill_similarity_matrix">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">analysis/embeddings.py</a>
+                            </td>
+                            <td>340</td>
+                            <td>
+                                <span class="badge badge-classes">3 classes</span>
+                                <br><small style="color: #666;">BillEmbeddings, SpeechEmbeddings, EmbeddingsGenerator</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">2 functions</span>
+                                <br><small style="color: #666;">create_embeddings, compute_bill_similarity_matrix</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="analysis/nlp_processor.py" data-classes="Entity ProcessedText NLPProcessor" data-functions="extract_entities">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">analysis/nlp_processor.py</a>
+                            </td>
+                            <td>374</td>
+                            <td>
+                                <span class="badge badge-classes">3 classes</span>
+                                <br><small style="color: #666;">Entity, ProcessedText, NLPProcessor</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">1 functions</span>
+                                <br><small style="color: #666;">extract_entities</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="analysis/sentiment.py" data-classes="SentimentScore SentimentAnalyzer" data-functions="analyze_sentiment">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">analysis/sentiment.py</a>
+                            </td>
+                            <td>359</td>
+                            <td>
+                                <span class="badge badge-classes">2 classes</span>
+                                <br><small style="color: #666;">SentimentScore, SentimentAnalyzer</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">1 functions</span>
+                                <br><small style="color: #666;">analyze_sentiment</small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="category expanded" data-category="Application Layer (app/)">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> Application Layer (app/)</h2>
+                <span class="count">4 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file="app/db.py" data-classes="DBIngestor" data-functions="run_migrations">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">app/db.py</a>
+                            </td>
+                            <td>103</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">DBIngestor</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">1 functions</span>
+                                <br><small style="color: #666;">run_migrations</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="app/pipeline.py" data-classes="DiscoveryManager Validator DownloadManager Extractor ParserNormalizer RetryManager Pipeline" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">app/pipeline.py</a>
+                            </td>
+                            <td>369</td>
+                            <td>
+                                <span class="badge badge-classes">7 classes</span>
+                                <br><small style="color: #666;">DiscoveryManager, Validator, DownloadManager, Extractor, ParserNormalizer...</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="app/run.py" data-classes="" data-functions="parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">app/run.py</a>
+                            </td>
+                            <td>62</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">2 functions</span>
+                                <br><small style="color: #666;">parse_args, main</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="app/utils.py" data-classes="" data-functions="configure_logger labeled trace_async save_json_atomic load_json_safe rotate_logs ensure_dirs">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">app/utils.py</a>
+                            </td>
+                            <td>130</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">7 functions</span>
+                                <br><small style="color: #666;">configure_logger, labeled, trace_async, save_json_atomic, load_json_safe...</small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="category expanded" data-category="Congress API (congress_api/)">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> Congress API (congress_api/)</h2>
+                <span class="count">3 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file="congress_api/congress_full_pipeline.py" data-classes="Config DiscoveryManager Validator DownloadManager Extractor ParserNormalizer DBManager RetryManager HTTPControlServer Pipeline" data-functions="configure_logger adapter_for labeled trace_async save_json_atomic load_json_safe ensure_dirs rotate_logs init_metrics parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_api/congress_full_pipeline.py</a>
+                            </td>
+                            <td>1220</td>
+                            <td>
+                                <span class="badge badge-classes">10 classes</span>
+                                <br><small style="color: #666;">Config, DiscoveryManager, Validator, DownloadManager, Extractor...</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">11 functions</span>
+                                <br><small style="color: #666;">configure_logger, adapter_for, labeled, trace_async, save_json_atomic...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_api/congress_pipeline_oop.py" data-classes="Config DiscoveryManager Validator DownloadManager Extractor ParserNormalizer DBIngestor RetryManager Pipeline" data-functions="parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_api/congress_pipeline_oop.py</a>
+                            </td>
+                            <td>769</td>
+                            <td>
+                                <span class="badge badge-classes">9 classes</span>
+                                <br><small style="color: #666;">Config, DiscoveryManager, Validator, DownloadManager, Extractor...</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">2 functions</span>
+                                <br><small style="color: #666;">parse_args, main</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_api/universal_ingest.py" data-classes="DBManager" data-functions="configure_logger adapter labeled map_openstates_bill map_openlegislation_bill map_govinfo_bill_from_xml ingest_openstates_file ingest_openleg_file ingest_govinfo_dir parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_api/universal_ingest.py</a>
+                            </td>
+                            <td>766</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">DBManager</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">11 functions</span>
+                                <br><small style="color: #666;">configure_logger, adapter, labeled, map_openstates_bill, map_openlegislation_bill...</small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="category expanded" data-category="Core Pipeline (cbw_*.py)">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> Core Pipeline (cbw_*.py)</h2>
+                <span class="count">13 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file="cbw_config.py" data-classes="Config" data-functions="now_congress">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_config.py</a>
+                            </td>
+                            <td>55</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">Config</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">1 functions</span>
+                                <br><small style="color: #666;">now_congress</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_db.py" data-classes="DBManager" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_db.py</a>
+                            </td>
+                            <td>105</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">DBManager</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_discovery.py" data-classes="DiscoveryManager" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_discovery.py</a>
+                            </td>
+                            <td>170</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">DiscoveryManager</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_downloader.py" data-classes="DownloadManager" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_downloader.py</a>
+                            </td>
+                            <td>131</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">DownloadManager</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_extractor.py" data-classes="Extractor" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_extractor.py</a>
+                            </td>
+                            <td>49</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">Extractor</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_http.py" data-classes="HTTPControlServer" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_http.py</a>
+                            </td>
+                            <td>86</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">HTTPControlServer</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_main.py" data-classes="" data-functions="parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_main.py</a>
+                            </td>
+                            <td>187</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">2 functions</span>
+                                <br><small style="color: #666;">parse_args, main</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_parser.py" data-classes="ParserNormalizer" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_parser.py</a>
+                            </td>
+                            <td>104</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">ParserNormalizer</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_retry.py" data-classes="RetryManager" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_retry.py</a>
+                            </td>
+                            <td>53</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">RetryManager</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_utils.py" data-classes="" data-functions="configure_logger adapter_for save_json_atomic load_json_safe ensure_dirs labeled trace_async">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_utils.py</a>
+                            </td>
+                            <td>142</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">7 functions</span>
+                                <br><small style="color: #666;">configure_logger, adapter_for, save_json_atomic, load_json_safe, ensure_dirs...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="cbw_validator.py" data-classes="Validator" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">cbw_validator.py</a>
+                            </td>
+                            <td>49</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">Validator</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_api/cbw_universal_pipeline.py" data-classes="Config DiscoveryManager Validator DownloadManager Extractor ParserNormalizer DBManager RetryManager HTTPControlServer Pipeline" data-functions="configure_logger adapter labeled trace_async save_json_atomic load_json_safe ensure_dirs interactive_console parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_api/cbw_universal_pipeline.py</a>
+                            </td>
+                            <td>1416</td>
+                            <td>
+                                <span class="badge badge-classes">10 classes</span>
+                                <br><small style="color: #666;">Config, DiscoveryManager, Validator, DownloadManager, Extractor...</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">10 functions</span>
+                                <br><small style="color: #666;">configure_logger, adapter, labeled, trace_async, save_json_atomic...</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="congress_api/cbw_universal_single_refine.py" data-classes="Config DiscoveryManager" data-functions="configure_logger adapter labeled trace_async save_json_atomic load_json_safe ensure_dirs analyze_samples_dir write_docker_compose parse_args main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">congress_api/cbw_universal_single_refine.py</a>
+                            </td>
+                            <td>553</td>
+                            <td>
+                                <span class="badge badge-classes">2 classes</span>
+                                <br><small style="color: #666;">Config, DiscoveryManager</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">11 functions</span>
+                                <br><small style="color: #666;">configure_logger, adapter, labeled, trace_async, save_json_atomic...</small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="category expanded" data-category="Data Models (models/)">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> Data Models (models/)</h2>
+                <span class="count">6 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file="models/__init__.py" data-classes="" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">models/__init__.py</a>
+                            </td>
+                            <td>28</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="models/bill.py" data-classes="Bill BillAction BillText BillSponsorship" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">models/bill.py</a>
+                            </td>
+                            <td>298</td>
+                            <td>
+                                <span class="badge badge-classes">4 classes</span>
+                                <br><small style="color: #666;">Bill, BillAction, BillText, BillSponsorship</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="models/committee.py" data-classes="Committee CommitteeMembership" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">models/committee.py</a>
+                            </td>
+                            <td>131</td>
+                            <td>
+                                <span class="badge badge-classes">2 classes</span>
+                                <br><small style="color: #666;">Committee, CommitteeMembership</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="models/jurisdiction.py" data-classes="Jurisdiction Session" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">models/jurisdiction.py</a>
+                            </td>
+                            <td>140</td>
+                            <td>
+                                <span class="badge badge-classes">2 classes</span>
+                                <br><small style="color: #666;">Jurisdiction, Session</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="models/person.py" data-classes="Person Member" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">models/person.py</a>
+                            </td>
+                            <td>226</td>
+                            <td>
+                                <span class="badge badge-classes">2 classes</span>
+                                <br><small style="color: #666;">Person, Member</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="models/vote.py" data-classes="Vote VoteRecord" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">models/vote.py</a>
+                            </td>
+                            <td>171</td>
+                            <td>
+                                <span class="badge badge-classes">2 classes</span>
+                                <br><small style="color: #666;">Vote, VoteRecord</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="category expanded" data-category="Examples (examples/)">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> Examples (examples/)</h2>
+                <span class="count">2 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file="examples/complete_analysis_pipeline.py" data-classes="PoliticalAnalysisPipeline" data-functions="main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">examples/complete_analysis_pipeline.py</a>
+                            </td>
+                            <td>421</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">PoliticalAnalysisPipeline</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">1 functions</span>
+                                <br><small style="color: #666;">main</small>
+                            </td>
+                        </tr>
+
+                        <tr data-file="examples/embeddings_example.py" data-classes="" data-functions="connect_to_db fetch_bills generate_bill_embeddings store_embeddings find_similar_bills store_similarity_scores main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">examples/embeddings_example.py</a>
+                            </td>
+                            <td>305</td>
+                            <td>
+                                <span class="badge badge-classes">0 classes</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">7 functions</span>
+                                <br><small style="color: #666;">connect_to_db, fetch_bills, generate_bill_embeddings, store_embeddings, find_similar_bills...</small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="category expanded" data-category="GitHub Automation (.github/scripts/)">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> GitHub Automation (.github/scripts/)</h2>
+                <span class="count">5 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file=".github/scripts/ai-code-review.py" data-classes="AICodeReviewer" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">.github/scripts/ai-code-review.py</a>
+                            </td>
+                            <td>263</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">AICodeReviewer</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file=".github/scripts/ai-documentation-review.py" data-classes="AIDocumentationReviewer" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">.github/scripts/ai-documentation-review.py</a>
+                            </td>
+                            <td>298</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">AIDocumentationReviewer</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file=".github/scripts/ai-refactor.py" data-classes="AIRefactor" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">.github/scripts/ai-refactor.py</a>
+                            </td>
+                            <td>337</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">AIRefactor</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file=".github/scripts/ai-test-generator.py" data-classes="AITestGenerator" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">.github/scripts/ai-test-generator.py</a>
+                            </td>
+                            <td>281</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">AITestGenerator</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                        <tr data-file=".github/scripts/crewai-integration.py" data-classes="AgentRole CrewAgent Task CrewAIOrchestrator" data-functions="">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">.github/scripts/crewai-integration.py</a>
+                            </td>
+                            <td>381</td>
+                            <td>
+                                <span class="badge badge-classes">4 classes</span>
+                                <br><small style="color: #666;">AgentRole, CrewAgent, Task, CrewAIOrchestrator</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">0 functions</span>
+                                <br><small style="color: #666;"></small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="category expanded" data-category="Other Scripts">
+            <div class="category-header" onclick="toggleCategory(this)">
+                <h2><span class="expand-icon">▶</span> Other Scripts</h2>
+                <span class="count">1 files</span>
+            </div>
+            <div class="category-content">
+                <table class="file-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Lines</th>
+                            <th>Classes</th>
+                            <th>Functions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr data-file="generate_docs.py" data-classes="RepoAnalyzer" data-functions="main">
+                            <td>
+                                <a href="#" class="file-name" onclick="return false;">generate_docs.py</a>
+                            </td>
+                            <td>604</td>
+                            <td>
+                                <span class="badge badge-classes">1 classes</span>
+                                <br><small style="color: #666;">RepoAnalyzer</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-functions">1 functions</span>
+                                <br><small style="color: #666;">main</small>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    
+    <div class="footer">
+        <p><strong>OpenGovt Repository</strong> - Government Data Analysis Framework</p>
+        <p>See <a href="SCRIPT_EVALUATION.md">SCRIPT_EVALUATION.md</a> for comprehensive documentation</p>
+        <p style="margin-top: 1rem; font-size: 0.85rem;">
+            To regenerate this page: <code>python generate_docs.py</code>
+        </p>
+    </div>
+    
+    <script>
+        function toggleCategory(element) {
+            const category = element.parentElement;
+            category.classList.toggle('expanded');
+        }
+        
+        function filterFiles() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('.file-table tbody tr');
+            
+            rows.forEach(row => {
+                const fileName = row.dataset.file.toLowerCase();
+                const classes = row.dataset.classes.toLowerCase();
+                const functions = row.dataset.functions.toLowerCase();
+                
+                if (fileName.includes(searchTerm) || 
+                    classes.includes(searchTerm) || 
+                    functions.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Show/hide categories based on whether they have visible files
+            document.querySelectorAll('.category').forEach(category => {
+                const visibleRows = category.querySelectorAll('tbody tr:not([style*="display: none"])');
+                if (visibleRows.length === 0 && searchTerm) {
+                    category.style.display = 'none';
+                } else {
+                    category.style.display = '';
+                }
+            });
+        }
+        
+        // Expand all categories by default
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.category').forEach(cat => {
+                cat.classList.add('expanded');
+            });
+        });
+    </script>
+</body>
+</html>
