@@ -1,6 +1,13 @@
 ```markdown
 # cbw Congress Bulk Ingest - Multi-file Package
 
+## 📚 Documentation
+
+- **[SCRIPT_EVALUATION.md](SCRIPT_EVALUATION.md)** - Comprehensive analysis of all 46 scripts, functions, and interactions (1,178 lines)
+- **[SCRIPT_INDEX.md](SCRIPT_INDEX.md)** - Quick reference guide with script catalog and common workflows (170 lines)
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Project organization and data models
+- **[docs/](docs/)** - Detailed documentation on analysis modules, APIs, and queries
+
 Overview
 - Purpose: End-to-end OOP pipeline to discover, download, extract, parse, normalize,
   and ingest U.S. legislative bulk data (govinfo / congress.gov, GovTrack, OpenStates,
