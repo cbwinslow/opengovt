@@ -1,0 +1,25 @@
+# Docker Compose Override Example
+# Copy this file to docker-compose.override.yml and customize for your setup
+# 
+# Usage:
+#   docker-compose up -d                    # Start with PostgreSQL only
+#   docker-compose --profile mysql up -d    # Include MySQL
+#   docker-compose --profile clickhouse up -d  # Include ClickHouse
+#   docker-compose --profile influxdb up -d    # Include InfluxDB
+#
+# You can combine multiple profiles:
+#   docker-compose --profile mysql --profile clickhouse up -d
+
+version: "3.8"
+services:
+  pipeline:
+    environment:
+      # Override with your actual API keys
+      - CONGRESS_API_KEY=your_congress_api_key_here
+      - GOVINFO_API_KEY=your_govinfo_api_key_here
+      - OPENSTATES_API_KEY=your_openstates_api_key_here
+      - NY_LEGISLATION_API_KEY=your_ny_legislation_api_key_here
+      
+      # Override database connections if needed
+      # - DATABASE_URL_POSTGRES=postgresql://user:pass@host:5432/dbname
+      # - DATABASE_URL_MYSQL=mysql+pymysql://user:pass@host:3306/dbname

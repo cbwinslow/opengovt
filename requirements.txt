@@ -4,3 +4,8 @@ tqdm
 psycopg2-binary
 lxml
 prometheus-client
+PyYAML>=6.0
+pymysql>=1.1.1
+clickhouse-driver>=0.2.6
+influxdb-client>=1.38.0
+sqlalchemy>=2.0.0

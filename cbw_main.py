@@ -73,25 +73,51 @@ logger = configure_logger()
 ad = adapter_for(logger, "main")
 
 def parse_args():
-    p = argparse.ArgumentParser()
-    p.add_argument("--start-congress", type=int, default=93)
-    p.add_argument("--end-congress", type=int, default=None)
-    p.add_argument("--outdir", type=str, default="./bulk_data")
-    p.add_argument("--bulk-json", type=str, default="bulk_urls.json")
-    p.add_argument("--retry-json", type=str, default="retry_report.json")
-    p.add_argument("--concurrency", type=int, default=6)
-    p.add_argument("--retries", type=int, default=5)
-    p.add_argument("--collections", type=str, default="")
-    p.add_argument("--no-discovery", dest="do_discovery", action="store_false")
-    p.add_argument("--validate", dest="do_validate", action="store_true")
-    p.add_argument("--download", dest="do_download", action="store_true")
-    p.add_argument("--extract", dest="do_extract", action="store_true")
-    p.add_argument("--postprocess", dest="do_postprocess", action="store_true")
-    p.add_argument("--db", type=str, default="")
-    p.add_argument("--serve", action="store_true")
-    p.add_argument("--serve-port", type=int, default=8080)
-    p.add_argument("--dry-run", action="store_true")
-    p.add_argument("--limit", type=int, default=0)
+    p = argparse.ArgumentParser(
+        description="OpenGovt legislative data ingestion pipeline",
+        epilog="See docs/DATABASE_CONFIGURATION.md for database setup details"
+    )
+    p.add_argument("--start-congress", type=int, default=93,
+                   help="Starting congress number (default: 93)")
+    p.add_argument("--end-congress", type=int, default=None,
+                   help="Ending congress number (default: current + 1)")
+    p.add_argument("--outdir", type=str, default="./bulk_data",
+                   help="Output directory for downloaded files")
+    p.add_argument("--bulk-json", type=str, default="bulk_urls.json",
+                   help="Path to bulk URLs JSON file")
+    p.add_argument("--retry-json", type=str, default="retry_report.json",
+                   help="Path to retry report JSON file")
+    p.add_argument("--concurrency", type=int, default=6,
+                   help="Number of concurrent downloads")
+    p.add_argument("--retries", type=int, default=5,
+                   help="Number of retry attempts")
+    p.add_argument("--collections", type=str, default="",
+                   help="Comma-separated list of collections to process")
+    p.add_argument("--no-discovery", dest="do_discovery", action="store_false",
+                   help="Skip discovery phase")
+    p.add_argument("--validate", dest="do_validate", action="store_true",
+                   help="Validate URLs before downloading")
+    p.add_argument("--download", dest="do_download", action="store_true",
+                   help="Download files")
+    p.add_argument("--extract", dest="do_extract", action="store_true",
+                   help="Extract downloaded archives")
+    p.add_argument("--postprocess", dest="do_postprocess", action="store_true",
+                   help="Process and insert data into database")
+    p.add_argument("--db", type=str, default="",
+                   help="Direct database URL (legacy, overrides config file)")
+    p.add_argument("--db-type", type=str, default="postgresql",
+                   choices=["postgresql", "mysql", "sqlite", "clickhouse"],
+                   help="Database type to use (default: postgresql)")
+    p.add_argument("--db-config", type=str, default="config/database.yaml",
+                   help="Path to database configuration file")
+    p.add_argument("--serve", action="store_true",
+                   help="Start HTTP control server")
+    p.add_argument("--serve-port", type=int, default=8080,
+                   help="HTTP control server port")
+    p.add_argument("--dry-run", action="store_true",
+                   help="Dry run mode - show sample URLs without downloading")
+    p.add_argument("--limit", type=int, default=0,
+                   help="Limit number of URLs to process (0 = no limit)")
     return p.parse_args()
 
 def main():
@@ -99,7 +125,8 @@ def main():
     collections = [c.strip().lower() for c in args.collections.split(",") if c.strip()] if args.collections else None
     cfg = Config(start_congress=args.start_congress, end_congress=args.end_congress, outdir=args.outdir,
                  bulk_json=args.bulk_json, retry_json=args.retry_json, concurrency=args.concurrency,
-                 retries=args.retries, collections=collections, do_discovery=args.do_discovery, db_url=args.db)
+                 retries=args.retries, collections=collections, do_discovery=args.do_discovery, 
+                 db_url=args.db, db_type=args.db_type, db_config_path=args.db_config)
     ensure_dirs(cfg.outdir, "./logs")
     discovery = DiscoveryManager(cfg)
     validator = Validator()
@@ -107,7 +134,16 @@ def main():
     extractor = Extractor(cfg.outdir)
     parser = ParserNormalizer()
     retry_mgr = RetryManager(cfg.retry_json)
-    dbmgr = DBManager(cfg.db_url, migrations=MIGRATIONS) if cfg.db_url else None
+    
+    # Initialize database manager with new multi-database support
+    dbmgr = None
+    if cfg.db_url or args.do_postprocess:
+        dbmgr = DBManager(
+            conn_str=cfg.db_url, 
+            migrations=MIGRATIONS,
+            config_path=cfg.db_config_path,
+            db_type=cfg.db_type
+        )
 
     ad.info("Starting cbw pipeline: start=%s end=%s collections=%s", cfg.start_congress, cfg.end_congress, cfg.collections)
 

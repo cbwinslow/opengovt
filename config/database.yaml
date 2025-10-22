@@ -1,0 +1,133 @@
+# Database Configuration File
+# This file contains connection strings for various database systems.
+# Environment variables can be used to override these values.
+#
+# Usage:
+#   - Set environment variables like DATABASE_URL_POSTGRES to override
+#   - Or modify this file directly for your setup
+#
+# Security Note:
+#   - Do NOT commit actual credentials to version control
+#   - Use environment variables for production deployments
+#   - This file should contain only templates or local dev credentials
+
+databases:
+  # PostgreSQL - Primary database for legislative data
+  postgresql:
+    enabled: true
+    # Use environment variable DATABASE_URL or DATABASE_URL_POSTGRES
+    connection_string: "${DATABASE_URL_POSTGRES:-postgresql://congress:congress@localhost:5432/congress}"
+    description: "Primary relational database for bills, votes, legislators"
+    pool_size: 10
+    max_overflow: 20
+    
+  # MySQL - Alternative relational database
+  mysql:
+    enabled: false
+    # Use environment variable DATABASE_URL_MYSQL
+    connection_string: "${DATABASE_URL_MYSQL:-mysql+pymysql://congress:congress@localhost:3306/congress}"
+    description: "Alternative relational database"
+    pool_size: 10
+    max_overflow: 20
+    
+  # SQLite - Lightweight local database for development/testing
+  sqlite:
+    enabled: false
+    # Use environment variable DATABASE_URL_SQLITE
+    connection_string: "${DATABASE_URL_SQLITE:-sqlite:///./congress.db}"
+    description: "Local file-based database for development"
+    pool_size: 1
+    max_overflow: 0
+    
+  # ClickHouse - Columnar database for analytics
+  clickhouse:
+    enabled: false
+    # Use environment variable DATABASE_URL_CLICKHOUSE
+    host: "${CLICKHOUSE_HOST:-localhost}"
+    port: "${CLICKHOUSE_PORT:-9000}"
+    database: "${CLICKHOUSE_DB:-congress}"
+    user: "${CLICKHOUSE_USER:-default}"
+    password: "${CLICKHOUSE_PASSWORD:-}"
+    description: "OLAP database for analytical queries and aggregations"
+    
+  # InfluxDB - Time series database for metrics
+  influxdb:
+    enabled: false
+    # Use environment variable INFLUXDB_URL
+    url: "${INFLUXDB_URL:-http://localhost:8086}"
+    token: "${INFLUXDB_TOKEN:-}"
+    org: "${INFLUXDB_ORG:-congress}"
+    bucket: "${INFLUXDB_BUCKET:-legislative_metrics}"
+    description: "Time series database for tracking legislative metrics over time"
+    
+  # VictoriaMetrics - Time series database for metrics (Prometheus-compatible)
+  victoriametrics:
+    enabled: false
+    # Use environment variable VICTORIAMETRICS_URL
+    url: "${VICTORIAMETRICS_URL:-http://localhost:8428}"
+    description: "Time series database for metrics and monitoring"
+
+# API Configurations for Government Data Sources
+api_sources:
+  # Congress.gov API
+  congress_api:
+    base_url: "https://api.congress.gov/v3"
+    api_key: "${CONGRESS_API_KEY:-}"
+    description: "Official Congress.gov API for federal legislative data"
+    rate_limit: 5000  # requests per hour
+    endpoints:
+      - "/bill"
+      - "/amendment" 
+      - "/member"
+      - "/committee"
+      - "/nomination"
+      - "/congress"
+    
+  # GovInfo.gov API
+  govinfo_api:
+    base_url: "https://api.govinfo.gov"
+    api_key: "${GOVINFO_API_KEY:-}"
+    description: "GovInfo.gov API for published government documents"
+    rate_limit: 1000  # requests per hour
+    endpoints:
+      - "/collections"
+      - "/published"
+      
+  # GovInfo.gov Bulk Data
+  govinfo_bulkdata:
+    base_url: "https://www.govinfo.gov/bulkdata"
+    description: "Bulk download access for government documents"
+    collections:
+      - "BILLS"
+      - "BILLSTATUS"
+      - "CREC"  # Congressional Record
+      - "FR"    # Federal Register
+      
+  # OpenStates API v3
+  openstates_api:
+    base_url: "https://v3.openstates.org"
+    api_key: "${OPENSTATES_API_KEY:-}"
+    description: "OpenStates API for state legislative data (all 50 states + DC, PR, VI)"
+    rate_limit: 4000  # requests per hour with API key
+    graphql_endpoint: "https://v3.openstates.org/graphql"
+    
+  # OpenStates Bulk Data
+  openstates_bulk:
+    base_url: "https://data.openstates.org"
+    mirror_url: "https://open.pluralpolicy.com/data"
+    description: "Bulk downloads for state legislative data"
+    
+  # New York OpenLegislation
+  ny_openlegislation:
+    base_url: "https://legislation.nysenate.gov/api/3"
+    api_key: "${NY_LEGISLATION_API_KEY:-}"
+    description: "New York State legislative data API"
+
+# Feature Flags
+features:
+  enable_remote_postgresql: true
+  enable_mysql: false
+  enable_clickhouse: false
+  enable_influxdb: false
+  enable_victoriametrics: false
+  enable_sqlite: false

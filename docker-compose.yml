@@ -1,5 +1,6 @@
 version: "3.8"
 services:
+  # PostgreSQL - Primary database
   postgres:
     image: postgres:15
     environment:
@@ -10,22 +11,123 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U congress"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # MySQL - Optional alternative database
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: congress
+      MYSQL_USER: congress
+      MYSQL_PASSWORD: congress
+    volumes:
+      - mysqldata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "congress", "-pcongress"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - mysql
+
+  # ClickHouse - Optional analytics database
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    environment:
+      CLICKHOUSE_DB: congress
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+    volumes:
+      - clickhousedata:/var/lib/clickhouse
+    ports:
+      - "8123:8123"  # HTTP
+      - "9000:9000"  # Native
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - clickhouse
+
+  # InfluxDB - Optional time series database
+  influxdb:
+    image: influxdb:2.7
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: congress
+      DOCKER_INFLUXDB_INIT_PASSWORD: congress123
+      DOCKER_INFLUXDB_INIT_ORG: congress
+      DOCKER_INFLUXDB_INIT_BUCKET: legislative_metrics
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: congresstoken123
+    volumes:
+      - influxdata:/var/lib/influxdb2
+    ports:
+      - "8086:8086"
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - influxdb
+
+  # VictoriaMetrics - Optional time series database
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:latest
+    volumes:
+      - vmdata:/victoria-metrics-data
+    ports:
+      - "8428:8428"
+    command:
+      - "-storageDataPath=/victoria-metrics-data"
+      - "-retentionPeriod=12"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8428/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - victoriametrics
+
+  # Main pipeline application
   pipeline:
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      - DATABASE_URL=postgresql://congress:congress@postgres:5432/congress
+      - DATABASE_URL_POSTGRES=postgresql://congress:congress@postgres:5432/congress
+      - DATABASE_URL_MYSQL=mysql+pymysql://congress:congress@mysql:3306/congress
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+      - CLICKHOUSE_DB=congress
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=congresstoken123
+      - INFLUXDB_ORG=congress
+      - INFLUXDB_BUCKET=legislative_metrics
+      - VICTORIAMETRICS_URL=http://victoriametrics:8428
       - CONGRESS_LOG_DIR=/var/log/congress
     volumes:
       - ./bulk_data:/usr/src/app/bulk_data
       - ./logs:/var/log/congress
+      - ./config:/usr/src/app/config
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8000:8000"  # Prometheus metrics
       - "8080:8080"  # HTTP control
 
 volumes:
   pgdata:
+  mysqldata:
+  clickhousedata:
+  influxdata:
+  vmdata:

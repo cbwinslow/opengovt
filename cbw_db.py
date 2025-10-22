@@ -17,23 +17,60 @@
 from typing import Dict, Any, Optional, List
 from cbw_utils import labeled, configure_logger, adapter_for
 import psycopg2
+from cbw_db_adapter import DatabaseManager, PostgreSQLAdapter
 
 logger = configure_logger()
 ad = adapter_for(logger, "db")
 
 class DBManager:
-    def __init__(self, conn_str: str, migrations: Optional[List[tuple]] = None):
+    def __init__(self, conn_str: str = None, migrations: Optional[List[tuple]] = None, 
+                 config_path: str = "config/database.yaml", db_type: str = "postgresql"):
+        """Initialize DBManager with support for multiple database types.
+        
+        Args:
+            conn_str: Direct connection string (legacy support)
+            migrations: List of (name, sql) tuples for migrations
+            config_path: Path to database configuration YAML file
+            db_type: Type of database to use (postgresql, mysql, sqlite, etc.)
+        """
         self.conn_str = conn_str
         self.conn = None
         self.migrations = migrations or []
+        self.config_path = config_path
+        self.db_type = db_type
+        self.db_manager = None
+        self.adapter = None
+        
+        # If config file exists, use DatabaseManager for multi-db support
+        import os
+        if os.path.exists(config_path):
+            try:
+                self.db_manager = DatabaseManager(config_path)
+                ad.info("Using DatabaseManager with config from %s", config_path)
+            except Exception as e:
+                ad.warning("Failed to load DatabaseManager, falling back to direct connection: %s", e)
 
     @labeled("db_connect")
     def connect(self):
+        # Try to use DatabaseManager if available
+        if self.db_manager:
+            self.adapter = self.db_manager.get_adapter(self.db_type)
+            if self.adapter:
+                self.adapter.connect()
+                # For PostgreSQL adapter, get the actual psycopg2 connection
+                if isinstance(self.adapter, PostgreSQLAdapter):
+                    self.conn = self.adapter.connection
+                ad.info("Connected using DatabaseManager adapter: %s", self.db_type)
+                return
+        
+        # Fallback to direct psycopg2 connection (legacy)
+        if not self.conn_str:
+            raise RuntimeError("No connection string provided and no config available")
         if psycopg2 is None:
             raise RuntimeError("psycopg2 not installed. pip install psycopg2-binary")
         self.conn = psycopg2.connect(self.conn_str)
         self.conn.autocommit = False
-        ad.info("Connected to Postgres")
+        ad.info("Connected to Postgres (legacy mode)")
 
     @labeled("db_run_migrations")
     def run_migrations(self):

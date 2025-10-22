@@ -40,7 +40,26 @@ class Config:
                  collections: Optional[List[str]] = None,
                  do_discovery: bool = True,
                  db_url: str = "",
+                 db_type: str = "postgresql",
+                 db_config_path: str = "config/database.yaml",
                  log_level: int = logging.INFO):
+        """Initialize configuration for the pipeline.
+        
+        Args:
+            start_congress: Starting congress number
+            end_congress: Ending congress number (defaults to current + 1)
+            outdir: Output directory for downloaded files
+            bulk_json: Path to bulk URLs JSON file
+            retry_json: Path to retry report JSON file
+            concurrency: Number of concurrent downloads
+            retries: Number of retry attempts for failed downloads
+            collections: List of collection names to process
+            do_discovery: Whether to run discovery phase
+            db_url: Direct database URL (legacy, overrides config file)
+            db_type: Type of database to use (postgresql, mysql, sqlite, etc.)
+            db_config_path: Path to database configuration YAML file
+            log_level: Logging level
+        """
         current = now_congress()
         self.start_congress = start_congress
         self.end_congress = end_congress if end_congress is not None else max(current + 1, 119)
@@ -51,5 +70,8 @@ class Config:
         self.retries = retries
         self.collections = [c.lower() for c in collections] if collections else None
         self.do_discovery = do_discovery
-        self.db_url = db_url
+        # Support for legacy db_url parameter and new config-based approach
+        self.db_url = db_url or os.getenv("DATABASE_URL", "")
+        self.db_type = db_type
+        self.db_config_path = db_config_path
         self.log_level = log_level
