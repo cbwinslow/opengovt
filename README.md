@@ -5,7 +5,7 @@
 
 - **[index.html](index.html)** - 🌐 **Interactive web browser** for all scripts (auto-generated)
 - **[SCRIPT_INDEX.md](SCRIPT_INDEX.md)** - Quick reference guide with script catalog (auto-generated)
-- **[SCRIPT_EVALUATION.md](SCRIPT_EVALUATION.md)** - Comprehensive analysis of all scripts and functions
+- **[SCRIPT_EVALUATION.md](SCRIPT_EVALUATION.md)** - Comprehensive analysis of all scripts and functions (auto-generated)
 - **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Project organization and data models
 - **[docs/](docs/)** - Detailed documentation on analysis modules, APIs, and queries
 
