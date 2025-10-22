@@ -1,12 +1,17 @@
 ```markdown
 # cbw Congress Bulk Ingest - Multi-file Package
 
+**Part of the [OpenDiscourse.net](https://opendiscourse.net) Project**
+
+This repository serves as the data ingestion and analysis backend for OpenDiscourse, a platform providing comprehensive analysis and transparency tools for government legislative data.
+
 ## 📚 Documentation
 
 - **[index.html](index.html)** - 🌐 **Interactive web browser** for all scripts (auto-generated)
 - **[SCRIPT_INDEX.md](SCRIPT_INDEX.md)** - Quick reference guide with script catalog (auto-generated)
 - **[SCRIPT_EVALUATION.md](SCRIPT_EVALUATION.md)** - Comprehensive analysis of all scripts and functions (auto-generated)
 - **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Project organization and data models
+- **[OPENDISCOURSE_PROJECT.md](OPENDISCOURSE_PROJECT.md)** - 🎯 **OpenDiscourse project roadmap and development items**
 - **[docs/](docs/)** - Detailed documentation on analysis modules, APIs, and queries
 
 ### 🔄 Auto-Generated Documentation
@@ -77,3 +82,47 @@ Notes
   - Expand the Go TUI to call the HTTP control API and display live progress.
   - Add Prometheus metric counters in the Python code (currently placeholders).
   - Provide unit tests and CI workflow.
+
+## 🎯 OpenDiscourse Project
+
+This repository is part of the **OpenDiscourse.net** project, which provides comprehensive analysis and transparency for government legislative data. 
+
+### Project Status & Roadmap
+
+See **[OPENDISCOURSE_PROJECT.md](OPENDISCOURSE_PROJECT.md)** for:
+- Development roadmap and timeline
+- Project items categorized by priority (Short/Medium/Long term)
+- Detailed tasks and success criteria for each feature
+- Current implementation status
+
+### Key Features (Planned & In Development)
+
+**Analysis Capabilities:**
+- 🔍 Embeddings & similarity search for legislative text
+- 📊 Sentiment analysis of bills and speeches
+- 🏷️ Entity extraction and NLP processing
+- ⚖️ Political bias detection
+- 📈 Voting consistency tracking
+
+**Upcoming Features:**
+- Legal text-specific embedding models
+- Topic modeling (LDA, BERTopic)
+- Fact-checking integration
+- Interactive visualization dashboards
+- Real-time analysis API
+- Alert system for position changes
+
+### Contributing to OpenDiscourse
+
+Check the [project issues](.github/project-issues/) for detailed specifications of planned features:
+- [01-legal-embeddings.md](.github/project-issues/01-legal-embeddings.md) - Specialized embedding models
+- [02-topic-modeling.md](.github/project-issues/02-topic-modeling.md) - Topic categorization
+- [03-fact-checking.md](.github/project-issues/03-fact-checking.md) - Claim verification
+- [04-visualization-dashboards.md](.github/project-issues/04-visualization-dashboards.md) - Interactive dashboards
+- And more...
+
+### Related Resources
+
+- **Analysis Modules**: See [docs/ANALYSIS_MODULES.md](docs/ANALYSIS_MODULES.md)
+- **Data Sources**: See [docs/GOVERNMENT_DATA_RESOURCES.md](docs/GOVERNMENT_DATA_RESOURCES.md)
+- **Implementation Summary**: See [docs/IMPLEMENTATION_SUMMARY.md](docs/IMPLEMENTATION_SUMMARY.md)
