@@ -108,11 +108,14 @@ class RepoAnalyzer:
             self.categories['Examples (examples/)'].append(file_path)
         elif parts[0] == '.github' and len(parts) > 1 and parts[1] == 'scripts':
             self.categories['GitHub Automation (.github/scripts/)'].append(file_path)
-        elif 'congress' in file_path.name or 'pipeline' in file_path.name:
+        # Test file categorization
+        elif file_path.name.startswith('test_') or 'tests' in parts:
+            self.categories['Test Files'].append(file_path)
+        # Alternative Implementations, but not test files
+        elif ('congress' in file_path.name or 'pipeline' in file_path.name):
             self.categories['Alternative Implementations'].append(file_path)
         else:
             self.categories['Other Scripts'].append(file_path)
-    
     def generate_markdown_index(self) -> str:
         """Generate SCRIPT_INDEX.md content."""
         lines = [
