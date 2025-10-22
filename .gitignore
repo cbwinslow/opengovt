@@ -82,6 +82,17 @@ bulk_data/
 *.csv
 *.json.gz
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker override (may contain credentials)
+docker-compose.override.yml
+
+# Local database config (if it contains real credentials)
+config/database.local.yaml
+
 # Jupyter notebooks checkpoints
 .ipynb_checkpoints/
 
