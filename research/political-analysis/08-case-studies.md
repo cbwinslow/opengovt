@@ -565,14 +565,23 @@ Analysis of parliamentary debates and voting records.
 **Public API**
 ```python
 import requests
+import json
 
 def get_uk_parliament_data(query):
     """Search UK Parliament API"""
     url = "https://hansard-api.parliament.uk/search.json"
     params = {'query': query}
     
-    response = requests.get(url, params=params)
-    return response.json()
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"HTTP request failed: {e}")
+        return None
+    except json.decoder.JSONDecodeError as e:
+        print(f"JSON decode error: {e}")
+        return None
 ```
 
 ---
