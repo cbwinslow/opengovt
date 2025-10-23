@@ -1,5 +1,8 @@
 // OpenGovt - Main Application Logic
 
+// Constants
+const MOCK_USER_NAME = 'Current User';
+
 class OpenGovtApp {
   constructor() {
     this.currentPolitician = null;
@@ -308,7 +311,7 @@ class OpenGovtApp {
   renderComments(itemId, comments) {
     const commentsHtml = comments.map(comment => {
       const timeAgo = this.getTimeAgo(comment.timestamp);
-      const initials = comment.author.split(' ').map(n => n[0]).join('');
+      const initials = comment.author.split(' ').filter(n => n).map(n => n[0]).join('');
       
       return `
         <div class="comment">
@@ -390,7 +393,7 @@ class OpenGovtApp {
     document.querySelectorAll('.comment-submit').forEach(btn => {
       btn.addEventListener('click', () => {
         const itemId = parseInt(btn.dataset.itemId);
-        const input = document.querySelector(`.comment-input[data-item-id="${itemId}"]`);
+        const input = document.querySelector(`.comment-input[data-item-id="${CSS.escape(itemId.toString())}"]`);
         if (input && input.value.trim()) {
           this.handleComment(itemId, input.value);
         }
@@ -421,7 +424,7 @@ class OpenGovtApp {
     // Create new comment
     const newComment = {
       id: Date.now(),
-      author: 'Current User', // In a real app, this would be the logged-in user
+      author: MOCK_USER_NAME, // In a real app, this would be the logged-in user
       content: content.trim(),
       timestamp: new Date(),
       likes: 0
