@@ -15,6 +15,9 @@ on:
     - cron: '0 8 * * 5'  # Weekly on Friday at 8 AM
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   generate-api-docs:
     name: Generate API Documentation

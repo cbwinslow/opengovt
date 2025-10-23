@@ -9,6 +9,9 @@ on:
     - cron: '0 3 * * 1'  # Weekly on Monday at 3 AM
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   check-and-add-headers:
     name: Check and Add File Headers

@@ -15,6 +15,9 @@ on:
       - 'app/db/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   sql-lint:
     name: SQL Linting

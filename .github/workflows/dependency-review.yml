@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 4 * * 1'  # Weekly on Monday at 4 AM
 
+permissions:
+  contents: read
+
 jobs:
   dependency-review:
     name: Dependency Review
