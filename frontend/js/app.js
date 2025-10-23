@@ -471,25 +471,28 @@ class OpenGovtApp {
     }
   }
 
-  getTimeAgo(date) {
-    const seconds = Math.floor((new Date() - date) / 1000);
-    
+  getTimeAgo(input) {
+    const d = input instanceof Date ? input : new Date(input);
+    const now = Date.now();
+    const ts = isNaN(d.getTime()) ? now : d.getTime();
+    const seconds = Math.max(0, Math.floor((now - ts) / 1000));
+
     let interval = Math.floor(seconds / 31536000);
-    if (interval >= 1) return interval + ' year' + (interval === 1 ? '' : 's') + ' ago';
-    
+    if (interval >= 1) return `${interval} year${interval === 1 ? '' : 's'} ago`;
+
     interval = Math.floor(seconds / 2592000);
-    if (interval >= 1) return interval + ' month' + (interval === 1 ? '' : 's') + ' ago';
-    
+    if (interval >= 1) return `${interval} month${interval === 1 ? '' : 's'} ago`;
+
     interval = Math.floor(seconds / 86400);
-    if (interval >= 1) return interval + ' day' + (interval === 1 ? '' : 's') + ' ago';
-    
+    if (interval >= 1) return `${interval} day${interval === 1 ? '' : 's'} ago`;
+
     interval = Math.floor(seconds / 3600);
-    if (interval >= 1) return interval + ' hour' + (interval === 1 ? '' : 's') + ' ago';
-    
+    if (interval >= 1) return `${interval} hour${interval === 1 ? '' : 's'} ago`;
+
     interval = Math.floor(seconds / 60);
-    if (interval >= 1) return interval + ' minute' + (interval === 1 ? '' : 's') + ' ago';
-    
-    return Math.floor(seconds) + ' seconds ago';
+    if (interval >= 1) return `${interval} minute${interval === 1 ? '' : 's'} ago`;
+
+    return `${Math.floor(seconds)} seconds ago`;
   }
 
   renderRightSidebar() {
