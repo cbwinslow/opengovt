@@ -46,7 +46,7 @@ CREATE TABLE bills (
     summary TEXT,
     introduced_date DATE,
     status VARCHAR(50),
-    PRIMARY KEY (congress, bill_type, bill_number)
+    UNIQUE (congress, bill_type, bill_number)
 );
 
 -- Votes
