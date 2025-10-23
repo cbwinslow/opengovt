@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/lib/themes/theme-provider";
-import { OctopusMascot } from "@/components/mascot/octopus-mascot";
+
 
 export const metadata: Metadata = {
   title: "OpenGovt - Political Transparency Platform",

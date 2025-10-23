@@ -33,7 +33,7 @@ function getOctopusResponse(message: string): string {
   const lowerMessage = message.toLowerCase();
   
   // Check for greetings
-  if (lowerMessage.match(/^\s*\b(hi|hello|hey|greetings)\b/)) {
+
     return octopusKnowledge.greeting;
   }
   
@@ -182,7 +182,7 @@ export function OctopusMascot() {
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+
                 placeholder="Ask me anything..."
                 className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
               />

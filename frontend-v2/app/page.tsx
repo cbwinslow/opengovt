@@ -6,7 +6,7 @@ import { useTheme } from "@/lib/themes/theme-provider";
 import Link from "next/link";
 
 export default function Home() {
-  const { currentTheme } = useTheme();
+
 
   return (
     <div className="min-h-screen">
@@ -40,11 +40,7 @@ export default function Home() {
           Track politicians, voting records, and government activity with complete transparency and accountability.
         </p>
         <div className="flex gap-4 justify-center">
-          <Link href="/politicians">
-            <Button asChild size="lg">
-              <span>Get Started</span>
-            </Button>
-          </Link>
+
           <Link href="/settings">
             <Button size="lg" variant="outline">Customize Theme</Button>
           </Link>
