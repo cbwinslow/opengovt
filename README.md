@@ -5,6 +5,17 @@
 
 This repository serves as the data ingestion and analysis backend for OpenDiscourse, a platform providing comprehensive analysis and transparency tools for government legislative data.
 
+## 🤖 Automated Workflows
+
+This repository uses comprehensive GitHub Actions workflows for code quality, security, and automation:
+
+- **12 Custom Workflows** - Code quality, security, documentation, AI analysis, and more
+- **20+ Marketplace Actions** - Integration with best-in-class tools
+- **9 AI Agents** - CrewAI-powered code analysis and improvements
+- **Automated Updates** - Dependabot for dependencies, auto-formatting, file headers
+
+📖 **[Quick Start Guide](.github/WORKFLOWS_QUICKSTART.md)** | 📚 **[Full Workflows Guide](.github/WORKFLOWS_GUIDE.md)**
+
 ## 📚 Documentation
 
 - **[index.html](index.html)** - 🌐 **Interactive web browser** for all scripts (auto-generated)
