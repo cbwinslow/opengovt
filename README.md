@@ -1,53 +1,293 @@
+# OpenGovt - Government Transparency & Legislative Analysis Platform
 
+A comprehensive platform for ingesting, analyzing, and providing transparency for U.S. legislative data, voting records, and social media discourse. Part of the **[OpenDiscourse.net](https://opendiscourse.net)** project.
 
-Overview
-- Purpose: End-to-end OOP pipeline to discover, download, extract, parse, normalize,
-  and ingest U.S. legislative bulk data (govinfo / congress.gov, GovTrack, OpenStates,
-  theunitedstates, etc.) into PostgreSQL. Includes retry reporting, HTTP control API,
-  detailed labeled logging and decorators, and a basic TUI (separate build).
-- Files: All Python modules are prefixed `cbw_` to show they belong together:
-  - cbw_utils.py        - logging, decorators, JSON helpers
-  - cbw_config.py      - configuration object & defaults
-  - cbw_discovery.py   - discovery of candidate URLs
-  - cbw_validator.py   - HEAD/GET validation
-  - cbw_downloader.py  - async downloader with resume/retry
-  - cbw_extractor.py   - archive extraction
-  - cbw_parser.py      - conservative parsers for XML/JSON
-  - cbw_db.py          - Postgres migration & upsert helper
-  - cbw_retry.py       - retry report manager
-  - cbw_http.py        - HTTP control server for TUI/automation
-  - cbw_main.py        - CLI entrypoint to run the end-to-end pipeline
-- Docker: Dockerfile and docker-compose.yml included for full stack (Postgres + pipeline)
-- Requirements: requests, aiohttp, tqdm, psycopg2-binary, lxml, prometheus-client
+## 🎯 Overview
 
-Quickstart (local)
-1. Create venv and install:
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
+OpenGovt is an end-to-end pipeline that:
+- **Ingests** legislative data from Congress.gov, GovInfo, OpenStates, and other sources
+- **Collects** social media data (Twitter/X) from politicians and analyzes public engagement
+- **Analyzes** bills, votes, speeches, and tweets using advanced NLP and ML techniques
+- **Extracts** political statements and positions at multiple granularity levels
+- **Provides** comprehensive analysis including sentiment, toxicity, bias, and consistency tracking
 
-2. Run discovery dry-run (no downloads):
-   python cbw_main.py --start-congress 118 --end-congress 118 --dry-run
+## ✨ Key Features
 
-3. Full run (careful: large downloads):
-   export DATABASE_URL="postgresql://user:pass@localhost:5432/congress"
-   python cbw_main.py --download --extract --postprocess --db "$DATABASE_URL"
+### Data Ingestion
+- 📊 **Legislative Data**: Bills, votes, committee activities, member information
+- 🐦 **Social Media**: Twitter/X tweets, replies, engagement metrics, and media
+- 🔄 **Automated Collection**: Scheduled ingestion with retry logic and rate limiting
+- 📁 **Bulk Processing**: Handle large datasets efficiently with async processing
 
-4. Start HTTP control server:
-   python cbw_main.py --serve --serve-port 8080
+### Analysis Capabilities
+- 💬 **Sentiment Analysis**: Multi-model analysis (VADER + Transformers) for tweets and bills
+- ⚠️ **Toxicity Detection**: Hate speech and toxic language identification in responses
+- 🎯 **Political Statement Extraction**: Multi-granularity bins of actions and declarations
+- 📈 **Voting Consistency**: Track position changes and flip-flops over time
+- 🤝 **Bipartisan Analysis**: Measure cross-party collaboration and agreement
+- 🎭 **Bias Detection**: Identify political bias and loaded language
 
-Docker (quick)
-1. docker-compose up --build
-2. Pipeline will attempt to run downloads as configured and expose Prometheus metrics on :8000 and control API on :8080.
+### Social Media Features
+- 👥 **Constituent Analysis**: Profile and analyze people responding to politicians
+- 📊 **Engagement Metrics**: Track likes, retweets, replies, and quote tweets
+- 🔍 **Response Correlation**: Analyze how constituent responses correlate with content
+- 🤖 **Bot Detection**: Identify likely automated accounts in responses
+- 📍 **Geographic Analysis**: Map follower and response locations
 
-Notes
-- Parsers are conservative starters: provide sample XML from govinfo/congress.gov for me to add exact lxml XPaths to map sponsors, cosponsors, actions, texts, and rollcall breakdowns.
-- Logs are in ./logs (rotating files), and each function is decorated with labeled entry/exit/exception logs to aid debugging.
-- The retry report is stored in retry_report.json; the downloader records failed URLs automatically.
-- I can now:
-  - Add robust govinfo XPaths to parse sponsors/actions/rollcalls given sample files.
-  - Expand the Go TUI to call the HTTP control API and display live progress.
-  - Add Prometheus metric counters in the Python code (currently placeholders).
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.12+
+- PostgreSQL 15+
+- Node.js 20+ (for frontend)
+- Docker & Docker Compose (recommended)
+
+### Installation
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/cbwinslow/opengovt.git
+cd opengovt
+```
+
+2. **Set up environment**
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your API keys and settings
+nano .env
+```
+
+3. **Using Docker (Recommended)**
+```bash
+# Build and start all services
+docker-compose up --build
+
+# Database migrations are run automatically
+```
+
+4. **Or Manual Installation**
+```bash
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-analysis.txt
+
+# Install Node dependencies for frontend
+cd frontend-v2
+npm install
+cd ..
+
+# Set up database
+psql -d postgres -c "CREATE DATABASE opengovt;"
+psql -d opengovt -f app/db/migrations/001_init.sql
+psql -d opengovt -f app/db/migrations/002_analysis_tables.sql
+psql -d opengovt -f app/db/migrations/003_social_media_tables.sql
+```
+
+### Basic Usage
+
+**Legislative Data Ingestion:**
+```bash
+# Run discovery (dry-run)
+python cbw_main.py --start-congress 118 --end-congress 118 --dry-run
+
+# Full ingestion
+export DATABASE_URL="postgresql://user:pass@localhost:5432/opengovt"
+python cbw_main.py --download --extract --postprocess --db "$DATABASE_URL"
+```
+
+**Social Media Data Collection:**
+```bash
+# Collect tweets from a politician
+python scripts/twitter_ingestion.py \
+  --person-id 123 \
+  --username SenatorSmith \
+  --days 30 \
+  --include-replies
+```
+
+**Analysis:**
+```bash
+# Analyze sentiment and toxicity
+python scripts/analyze_tweets.py --analyze-all
+
+# Extract political statements
+python scripts/extract_statements.py --source all
+```
+
+## 📖 Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running quickly
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment instructions
+- **[Development Guide](docs/DEVELOPMENT.md)** - Contributing and development setup
+- **[Social Media Analysis](docs/SOCIAL_MEDIA.md)** - Twitter/X integration and analysis
+- **[API Endpoints](docs/API_ENDPOINTS.md)** - Government data API references
+- **[SQL Queries](docs/SQL_QUERIES.md)** - Common database queries
+- **[Analysis Modules](docs/ANALYSIS_MODULES.md)** - NLP and ML analysis details
+
+## 🏗️ Project Structure
+
+```
+opengovt/
+├── app/                    # Application code
+│   ├── db/                # Database utilities and migrations
+│   ├── pipeline.py        # Data processing pipeline
+│   └── run.py            # Application runner
+├── analysis/              # NLP and ML analysis modules
+│   ├── sentiment.py       # Sentiment analysis
+│   ├── bias_detector.py   # Political bias detection
+│   ├── embeddings.py      # Text embeddings
+│   └── nlp_processor.py   # General NLP processing
+├── models/                # Data models
+│   ├── bill.py           # Bill models
+│   ├── person.py         # Person/Member models
+│   ├── vote.py           # Vote models
+│   └── social_media.py   # Social media models
+├── scripts/               # Utility scripts
+│   ├── twitter_ingestion.py      # Twitter data collection
+│   ├── analyze_tweets.py         # Tweet analysis
+│   └── extract_statements.py    # Statement extraction
+├── frontend-v2/           # Next.js frontend application
+├── docs/                  # Documentation
+├── .devcontainer/         # VS Code dev container config
+└── docker-compose.yml    # Docker services configuration
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Key configuration options in `.env`:
+
+```bash
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/opengovt
+
+# API Keys
+TWITTER_BEARER_TOKEN=your_token
+CONGRESS_API_KEY=your_key
+OPENSTATES_API_KEY=your_key
+
+# Feature Flags
+ENABLE_TWITTER_INGESTION=true
+ENABLE_SENTIMENT_ANALYSIS=true
+ENABLE_TOXICITY_DETECTION=true
+ENABLE_STATEMENT_EXTRACTION=true
+
+# Analysis Settings
+SENTIMENT_MODEL=vader
+TOXICITY_MODEL=detoxify
+```
+
+See `.env.example` for all available options.
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest
+
+# Run specific test suite
+pytest tests/test_sentiment.py
+
+# Run with coverage
+pytest --cov=. --cov-report=html
+```
+
+## 📊 Data Models
+
+### Political Statement Extraction (Multi-Granularity)
+
+Statements are extracted at three levels:
+
+1. **Short**: "Senator X voted to increase taxes"
+2. **Medium**: "Senator X voted to increase taxes 5 percent"
+3. **Full**: "Senator X voted to increase taxes 5 percent in VA last year"
+
+This allows for analysis at different detail levels while maintaining traceability.
+
+### Database Schema
+
+The database includes tables for:
+- **Legislative Data**: bills, votes, legislators, committees
+- **Social Media**: tweets, replies, profiles, engagement
+- **Analysis**: sentiment, toxicity, bias, consistency
+- **Extracted Data**: political statements, entities, topics
+
+See [SQL Queries documentation](docs/SQL_QUERIES.md) for examples.
+
+## 🔐 Security
+
+- Environment variables for sensitive data
+- SQL injection prevention with prepared statements
+- Rate limiting on API endpoints
+- HTTPS enforced in production
+- Regular dependency updates
+- CodeQL security scanning
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Development Guide](docs/DEVELOPMENT.md) for details on:
+- Setting up your development environment
+- Code style and conventions
+- Submitting pull requests
+- Running tests
+
+## 📈 Roadmap
+
+See **[OPENDISCOURSE_PROJECT.md](OPENDISCOURSE_PROJECT.md)** for the full roadmap.
+
+**Short-term:**
+- ✅ Social media integration (Twitter/X)
+- ✅ Sentiment and toxicity analysis
+- ✅ Political statement extraction
+- 🔄 Real-time tweet monitoring
+- 🔄 Fact-checking integration
+
+**Medium-term:**
+- Topic modeling (LDA, BERTopic)
+- Specialized legal text embeddings
+- Interactive visualization dashboards
+- Alert system for position changes
+
+**Long-term:**
+- Multi-platform social media (Facebook, YouTube)
+- Predictive voting analysis
+- Automated policy briefs
+- Public API access
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Congress.gov API
+- OpenStates API
+- ProPublica Congress API
+- Twitter API v2
+- spaCy, transformers, and other open-source NLP tools
+
+## 📧 Contact
+
+- **Project**: [OpenDiscourse.net](https://opendiscourse.net)
+- **GitHub**: [cbwinslow/opengovt](https://github.com/cbwinslow/opengovt)
+- **Issues**: [GitHub Issues](https://github.com/cbwinslow/opengovt/issues)
+
+## 🌟 Star History
+
+If you find this project useful, please consider giving it a star! ⭐
+
+---
+
+**Note**: This is an active development project. Features and APIs may change. Always refer to the latest documentation.
   - Provide unit tests and CI workflow.
 
 ## 🎯 OpenDiscourse Project
