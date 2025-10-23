@@ -1,37 +1,4 @@
-```markdown
-# cbw Congress Bulk Ingest - Multi-file Package
 
-**Part of the [OpenDiscourse.net](https://opendiscourse.net) Project**
-
-This repository serves as the data ingestion and analysis backend for OpenDiscourse, a platform providing comprehensive analysis and transparency tools for government legislative data.
-
-## 📚 Documentation
-
-- **[index.html](index.html)** - 🌐 **Interactive web browser** for all scripts (auto-generated)
-- **[SCRIPT_INDEX.md](SCRIPT_INDEX.md)** - Quick reference guide with script catalog (auto-generated)
-- **[SCRIPT_EVALUATION.md](SCRIPT_EVALUATION.md)** - Comprehensive analysis of all scripts and functions (auto-generated)
-- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Project organization and data models
-- **[OPENDISCOURSE_PROJECT.md](OPENDISCOURSE_PROJECT.md)** - 🎯 **OpenDiscourse project roadmap and development items**
-- **[docs/](docs/)** - Detailed documentation on analysis modules, APIs, and queries
-
-### 🔄 Auto-Generated Documentation
-
-The documentation automatically adjusts when files are added, removed, or modified:
-
-```bash
-# Regenerate documentation after changes
-python generate_docs.py
-```
-
-This updates:
-- `SCRIPT_INDEX.md` - Markdown reference with current stats
-- `index.html` - Interactive web view with search functionality
-
-View the interactive HTML:
-```bash
-python -m http.server 8000
-# Open http://localhost:8000/index.html in your browser
-```
 
 Overview
 - Purpose: End-to-end OOP pipeline to discover, download, extract, parse, normalize,
