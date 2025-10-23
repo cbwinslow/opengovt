@@ -122,6 +122,8 @@ Our approach combines multiple disciplines:
 
 ## 🚀 Getting Started
 
+### Using This Research
+
 1. Review the research documents in order (01-08)
 2. Implement database schemas from section 07
 3. Set up NLP pipelines using code examples
@@ -129,6 +131,22 @@ Our approach combines multiple disciplines:
 5. Deploy metrics calculation routines
 6. Build visualization dashboards
 7. Test and validate on historical data
+
+### Integration with Existing Codebase
+
+This research complements the existing `/analysis` directory modules:
+
+- **Research → Existing Code Mapping**:
+  - `02-nlp-text-analysis.md` → `/analysis/nlp_processor.py`, `/analysis/embeddings.py`
+  - `03-political-metrics.md` → `/analysis/bias_detector.py`, `/analysis/consistency_analyzer.py`
+  - `03-political-metrics.md` (sentiment) → `/analysis/sentiment.py`
+  - Models documented → `/models/` (bill.py, person.py, vote.py, etc.)
+
+- **See Also**:
+  - `/docs/ANALYSIS_MODULES.md` - Documentation for existing analysis modules
+  - `/examples/` - Working code examples
+  - `PROJECT_STRUCTURE.md` - Complete project organization
+  - `/app/db/migrations/002_analysis_tables.sql` - Database schemas for analysis results
 
 ## 📖 References
 
@@ -154,6 +172,6 @@ This research is part of the OpenDiscourse.net project and follows the same open
 
 ---
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23
 **Maintained By**: OpenDiscourse.net Team
 **Contact**: See main repository for contact information

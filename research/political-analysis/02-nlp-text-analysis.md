@@ -815,5 +815,5 @@ class PoliticianTextAnalysis:
 
 ---
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23
 **Next**: [03-political-metrics.md](03-political-metrics.md)

@@ -598,5 +598,5 @@ extract >> transform >> load >> embed
 
 ---
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23
 **Next**: [02-nlp-text-analysis.md](02-nlp-text-analysis.md)

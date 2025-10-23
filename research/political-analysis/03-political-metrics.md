@@ -861,5 +861,5 @@ CREATE INDEX idx_metrics_date ON politician_metrics(calculated_date);
 
 ---
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23
 **Next**: [04-hate-speech-toxicity.md](04-hate-speech-toxicity.md)

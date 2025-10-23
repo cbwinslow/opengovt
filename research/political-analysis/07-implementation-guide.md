@@ -968,5 +968,5 @@ celery_app.conf.beat_schedule = {
 
 ---
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23
 **Next**: [08-case-studies.md](08-case-studies.md)

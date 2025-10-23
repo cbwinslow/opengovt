@@ -673,5 +673,5 @@ GROUP BY politician_id, DATE_TRUNC('month', analysis_date);
 
 ---
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23
 **Next**: [05-social-media-analysis.md](05-social-media-analysis.md)

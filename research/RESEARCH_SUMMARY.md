@@ -179,6 +179,33 @@ Identified opportunities:
 5. **Adapt to your needs**: Code examples are templates
 6. **Contribute back**: Improve based on your experience
 
+## Integration with Existing Codebase
+
+This research folder provides **theoretical foundation and implementation patterns** that complement the existing OpenGovt codebase:
+
+### Existing Implementation
+The repository already has foundational analysis modules in `/analysis/`:
+- `embeddings.py` - Vector representations (matches research doc 02)
+- `bias_detector.py` - Political bias detection (matches research doc 03)
+- `sentiment.py` - Sentiment analysis (matches research doc 02)
+- `nlp_processor.py` - NLP processing (matches research doc 02)
+- `consistency_analyzer.py` - Voting consistency (matches research doc 03)
+
+### Research Purpose
+These research documents provide:
+- **Deep dive theory**: Comprehensive methodologies and academic background
+- **Extended examples**: More implementation patterns beyond current code
+- **Future roadmap**: Additional features to implement (social media, toxicity detection, etc.)
+- **Best practices**: Industry case studies and lessons learned
+- **Integration guides**: How to connect all components into a complete system
+
+### Next Steps for Implementation
+1. Review existing `/analysis` modules to understand current capabilities
+2. Use research docs to understand theoretical foundation
+3. Extend existing modules with patterns from research (e.g., add toxicity detection)
+4. Implement new features from docs 04-06 (hate speech, social media, constituent impact)
+5. Follow doc 07 (implementation guide) to build complete platform
+
 ## Contributing
 
 This is living research that should be updated as:
@@ -194,7 +221,7 @@ Part of the OpenDiscourse.net project - see main repository for license informat
 
 ---
 
-**Created**: 2025-10-22
+**Created**: 2025-10-23
 **Total Research**: 6,500+ lines across 9 documents
 **Status**: Complete and ready for implementation
 **Next Steps**: Build the system described in the implementation guide

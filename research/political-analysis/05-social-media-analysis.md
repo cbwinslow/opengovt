@@ -849,5 +849,5 @@ CREATE INDEX idx_replies_original ON tweet_replies(original_tweet_id);
 
 ---
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23
 **Next**: [06-constituent-impact.md](06-constituent-impact.md)

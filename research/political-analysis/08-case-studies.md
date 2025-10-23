@@ -707,5 +707,5 @@ def get_uk_parliament_data(query):
 
 ---
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23
 **This concludes the research folder documentation**
