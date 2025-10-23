@@ -1,0 +1,113 @@
+{
+  "name": "OpenGovt Development Container",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.provider": "black",
+        "python.formatting.blackPath": "/usr/local/bin/black",
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestPath": "/usr/local/bin/pytest",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": true
+        },
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/*.pyc": true,
+          "**/.pytest_cache": true,
+          "**/node_modules": true,
+          "**/.venv": true
+        },
+        "sqltools.connections": [
+          {
+            "name": "PostgreSQL - Development",
+            "driver": "PostgreSQL",
+            "server": "db",
+            "port": 5432,
+            "database": "opengovt",
+            "username": "postgres",
+            "password": "postgres"
+          }
+        ]
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-azuretools.vscode-docker",
+        "eamodio.gitlens",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "redhat.vscode-yaml",
+        "streetsidesoftware.code-spell-checker"
+      ]
+    }
+  },
+  
+  "forwardPorts": [
+    5432,
+    8000,
+    8080,
+    3000
+  ],
+  
+  "portsAttributes": {
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "8000": {
+      "label": "Prometheus Metrics",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "API Server",
+      "onAutoForward": "notify"
+    },
+    "3000": {
+      "label": "Frontend Dev Server",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  
+  "postCreateCommand": "pip install -r requirements.txt && pip install -r requirements-analysis.txt && cd frontend-v2 && npm install",
+  
+  "postStartCommand": "echo 'Development container started. Run migrations with: python app/db.py migrate'",
+  
+  "remoteUser": "vscode",
+  
+  "mounts": [
+    "source=${localWorkspaceFolder}/.venv,target=/workspace/.venv,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/bulk_data,target=/workspace/bulk_data,type=bind,consistency=delegated"
+  ],
+  
+  "containerEnv": {
+    "PYTHONPATH": "/workspace",
+    "DATABASE_URL": "postgresql://postgres:postgres@db:5432/opengovt",
+    "NODE_ENV": "development"
+  }
+}
