@@ -6,9 +6,12 @@ Performs sentiment analysis, toxicity detection, and political statement extract
 on tweets and replies stored in the database.
 
 Usage:
+    export DATABASE_URL="postgresql://user:pass@localhost:5432/opengovt"
     python analyze_tweets.py --analyze-sentiment --analyze-toxicity
     python analyze_tweets.py --person-id 123 --analyze-all
     python analyze_tweets.py --extract-statements
+
+Note: DATABASE_URL must be set as an environment variable for security.
 """
 
 import os
@@ -464,14 +467,13 @@ def main():
     parser.add_argument('--analyze-toxicity', action='store_true', help='Analyze toxicity')
     parser.add_argument('--analyze-all', action='store_true', help='Analyze sentiment and toxicity')
     parser.add_argument('--batch-size', type=int, default=100, help='Batch size for processing')
-    parser.add_argument('--db-url', type=str, help='Database connection URL')
     
     args = parser.parse_args()
     
-    # Get database URL
-    db_url = args.db_url or os.getenv('DATABASE_URL')
+    # Get database URL from environment variable only (more secure than CLI argument)
+    db_url = os.getenv('DATABASE_URL')
     if not db_url:
-        logger.error("Database URL is required (--db-url or DATABASE_URL env var)")
+        logger.error("DATABASE_URL environment variable is required")
         sys.exit(1)
     
     # Initialize processor

@@ -10,9 +10,12 @@ This script ingests tweets from politicians' Twitter accounts, including:
 - Political statement extraction
 
 Usage:
+    export DATABASE_URL="postgresql://user:pass@localhost:5432/opengovt"
     python twitter_ingestion.py --person-id 123 --days 30
     python twitter_ingestion.py --username SenatorSmith --include-replies
     python twitter_ingestion.py --config config.json --batch
+
+Note: DATABASE_URL must be set as an environment variable for security.
 """
 
 import os
@@ -529,7 +532,6 @@ def main():
     parser.add_argument('--days', type=int, default=30, help='Days of history to fetch')
     parser.add_argument('--include-replies', action='store_true', help='Include replies to tweets')
     parser.add_argument('--max-tweets', type=int, default=1000, help='Maximum tweets to fetch')
-    parser.add_argument('--db-url', type=str, help='Database connection URL')
     
     args = parser.parse_args()
     
@@ -537,10 +539,10 @@ def main():
         parser.print_help()
         sys.exit(1)
     
-    # Get database URL
-    db_url = args.db_url or os.getenv('DATABASE_URL')
+    # Get database URL from environment variable only (more secure than CLI argument)
+    db_url = os.getenv('DATABASE_URL')
     if not db_url:
-        logger.error("Database URL is required (--db-url or DATABASE_URL env var)")
+        logger.error("DATABASE_URL environment variable is required")
         sys.exit(1)
     
     # Initialize components
