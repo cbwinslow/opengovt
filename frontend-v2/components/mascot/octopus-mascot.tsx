@@ -33,7 +33,7 @@ function getOctopusResponse(message: string): string {
   const lowerMessage = message.toLowerCase();
   
   // Check for greetings
-  if (lowerMessage.match(/^(hi|hello|hey|greetings)/)) {
+  if (lowerMessage.match(/^\s*\b(hi|hello|hey|greetings)\b/)) {
     return octopusKnowledge.greeting;
   }
   
