@@ -269,10 +269,18 @@ class OpenGovtApp {
   renderSocialContent(item) {
     const social = item.social;
     const platformIcon = social.platform === 'twitter' ? '🐦' : '📘';
+    const escapeHtml = (str) =>
+      String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
     return `
       <div class="social-content">
         <div class="social-platform">${platformIcon} ${social.platform}</div>
-        <div class="social-text">${social.content}</div>
+        <div class="social-text">${escapeHtml(social.content)}</div>
       </div>
     `;
   }
