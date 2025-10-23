@@ -6,16 +6,7 @@ import { useTheme } from "@/lib/themes/theme-provider";
 import Link from "next/link";
 
 export default function Home() {
-  let currentTheme: { name: string } = { name: "Default" };
-  try {
-    // Attempt to read from theme context if available
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { useTheme } = require("@/lib/themes/theme-provider");
-    currentTheme = useTheme()?.currentTheme ?? currentTheme;
-  } catch {
-    // fallback when provider/hook is missing
-    currentTheme = { name: "Default" };
-  }
+
 
   return (
     <div className="min-h-screen">
@@ -49,7 +40,7 @@ export default function Home() {
           Track politicians, voting records, and government activity with complete transparency and accountability.
         </p>
         <div className="flex gap-4 justify-center">
-          <Button size="lg">Get Started</Button>
+
           <Link href="/settings">
             <Button size="lg" variant="outline">Customize Theme</Button>
           </Link>

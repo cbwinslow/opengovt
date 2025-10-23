@@ -1,15 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import dynamic from "next/dynamic";
-// Lazy-load optional features that may be missing to prevent runtime errors
-const ThemeProvider = dynamic(() => import("@/lib/themes/theme-provider").then(m => m.ThemeProvider), {
-  ssr: false,
-  loading: () => <>{/* theme provider loading noop */}</>,
-});
-const OctopusMascot = dynamic(() => import("@/components/mascot/octopus-mascot").then(m => m.OctopusMascot), {
-  ssr: false,
-  loading: () => null,
-});
+
 
 export const metadata: Metadata = {
   title: "OpenGovt - Political Transparency Platform",
