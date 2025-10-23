@@ -6,7 +6,16 @@ import { useTheme } from "@/lib/themes/theme-provider";
 import Link from "next/link";
 
 export default function Home() {
-  const { currentTheme } = useTheme();
+  let currentTheme: { name: string } = { name: "Default" };
+  try {
+    // Attempt to read from theme context if available
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { useTheme } = require("@/lib/themes/theme-provider");
+    currentTheme = useTheme()?.currentTheme ?? currentTheme;
+  } catch {
+    // fallback when provider/hook is missing
+    currentTheme = { name: "Default" };
+  }
 
   return (
     <div className="min-h-screen">
