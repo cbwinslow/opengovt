@@ -157,15 +157,25 @@ class OpenGovtApp {
     const mainFeed = document.querySelector('.main-feed');
     if (!mainFeed) return;
 
-    // Get feed items for this politician
+    // Ensure a dedicated container exists after the profile header
+    let feedContainer = mainFeed.querySelector('.feed-items');
+    if (!feedContainer) {
+      feedContainer = document.createElement('div');
+      feedContainer.className = 'feed-items';
+      mainFeed.appendChild(feedContainer);
+    }
+
+    // Get feed items for this politician and sort deterministically by time
     const feedItems = mockData.feedItems
       .filter(item => item.politicianId === politicianId)
-      .sort((a, b) => b.timestamp - a.timestamp);
+      .sort((a, b) => {
+        const at = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+        const bt = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+        return bt - at;
+      });
 
-    const feedHtml = feedItems.map(item => this.renderFeedItem(item)).join('');
-    
-    // Append to main feed (after profile header)
-    mainFeed.innerHTML += feedHtml;
+    // Replace feed list to avoid duplicates
+    feedContainer.innerHTML = feedItems.map(item => this.renderFeedItem(item)).join('');
 
     // Add event listeners for actions
     this.setupFeedItemListeners();
