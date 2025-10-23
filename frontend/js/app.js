@@ -157,15 +157,25 @@ class OpenGovtApp {
     const mainFeed = document.querySelector('.main-feed');
     if (!mainFeed) return;
 
-    // Get feed items for this politician
+    // Ensure a dedicated container exists after the profile header
+    let feedContainer = mainFeed.querySelector('.feed-items');
+    if (!feedContainer) {
+      feedContainer = document.createElement('div');
+      feedContainer.className = 'feed-items';
+      mainFeed.appendChild(feedContainer);
+    }
+
+    // Get feed items for this politician and sort deterministically by time
     const feedItems = mockData.feedItems
       .filter(item => item.politicianId === politicianId)
-      .sort((a, b) => b.timestamp - a.timestamp);
+      .sort((a, b) => {
+        const at = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+        const bt = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+        return bt - at;
+      });
 
-    const feedHtml = feedItems.map(item => this.renderFeedItem(item)).join('');
-    
-    // Append to main feed (after profile header)
-    mainFeed.innerHTML += feedHtml;
+    // Replace feed list to avoid duplicates
+    feedContainer.innerHTML = feedItems.map(item => this.renderFeedItem(item)).join('');
 
     // Add event listeners for actions
     this.setupFeedItemListeners();
@@ -259,10 +269,18 @@ class OpenGovtApp {
   renderSocialContent(item) {
     const social = item.social;
     const platformIcon = social.platform === 'twitter' ? '🐦' : '📘';
+    const escapeHtml = (str) =>
+      String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
     return `
       <div class="social-content">
         <div class="social-platform">${platformIcon} ${social.platform}</div>
-        <div class="social-text">${social.content}</div>
+        <div class="social-text">${escapeHtml(social.content)}</div>
       </div>
     `;
   }
@@ -461,25 +479,28 @@ class OpenGovtApp {
     }
   }
 
-  getTimeAgo(date) {
-    const seconds = Math.floor((new Date() - date) / 1000);
-    
+  getTimeAgo(input) {
+    const d = input instanceof Date ? input : new Date(input);
+    const now = Date.now();
+    const ts = isNaN(d.getTime()) ? now : d.getTime();
+    const seconds = Math.max(0, Math.floor((now - ts) / 1000));
+
     let interval = Math.floor(seconds / 31536000);
-    if (interval >= 1) return interval + ' year' + (interval === 1 ? '' : 's') + ' ago';
-    
+    if (interval >= 1) return `${interval} year${interval === 1 ? '' : 's'} ago`;
+
     interval = Math.floor(seconds / 2592000);
-    if (interval >= 1) return interval + ' month' + (interval === 1 ? '' : 's') + ' ago';
-    
+    if (interval >= 1) return `${interval} month${interval === 1 ? '' : 's'} ago`;
+
     interval = Math.floor(seconds / 86400);
-    if (interval >= 1) return interval + ' day' + (interval === 1 ? '' : 's') + ' ago';
-    
+    if (interval >= 1) return `${interval} day${interval === 1 ? '' : 's'} ago`;
+
     interval = Math.floor(seconds / 3600);
-    if (interval >= 1) return interval + ' hour' + (interval === 1 ? '' : 's') + ' ago';
-    
+    if (interval >= 1) return `${interval} hour${interval === 1 ? '' : 's'} ago`;
+
     interval = Math.floor(seconds / 60);
-    if (interval >= 1) return interval + ' minute' + (interval === 1 ? '' : 's') + ' ago';
-    
-    return Math.floor(seconds) + ' seconds ago';
+    if (interval >= 1) return `${interval} minute${interval === 1 ? '' : 's'} ago`;
+
+    return `${Math.floor(seconds)} seconds ago`;
   }
 
   renderRightSidebar() {
