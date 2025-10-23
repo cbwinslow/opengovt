@@ -10,7 +10,7 @@ This script ingests tweets from politicians' Twitter accounts, including:
 - Political statement extraction
 
 Usage:
-    export DATABASE_URL="postgresql://user:pass@localhost:5432/opengovt"
+    export DATABASE_URL="postgresql://username:password@host:port/database"
     python twitter_ingestion.py --person-id 123 --days 30
     python twitter_ingestion.py --username SenatorSmith --include-replies
     python twitter_ingestion.py --config config.json --batch

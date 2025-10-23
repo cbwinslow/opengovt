@@ -11,7 +11,7 @@ Example extractions:
 - Short: "Senator X voted to increase taxes"
 
 Usage:
-    export DATABASE_URL="postgresql://user:pass@localhost:5432/opengovt"
+    export DATABASE_URL="postgresql://username:password@host:port/database"
     python extract_statements.py --source tweets --person-id 123
     python extract_statements.py --source bills --extract-all
 

@@ -137,7 +137,7 @@ Use the `twitter_ingestion.py` script to collect tweets:
 
 ```bash
 # Set database URL as environment variable (required)
-export DATABASE_URL="postgresql://user:pass@localhost/opengovt"
+export DATABASE_URL="postgresql://username:password@host:port/database"
 
 # Collect tweets for a specific politician
 python scripts/twitter_ingestion.py \
@@ -204,7 +204,7 @@ for pol in config['politicians']:
 
 **Prerequisites:** All analysis scripts require the `DATABASE_URL` environment variable to be set:
 ```bash
-export DATABASE_URL="postgresql://user:pass@localhost/opengovt"
+export DATABASE_URL="postgresql://username:password@host:port/database"
 ```
 
 ### Sentiment Analysis

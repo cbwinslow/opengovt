@@ -6,7 +6,7 @@ Performs sentiment analysis, toxicity detection, and political statement extract
 on tweets and replies stored in the database.
 
 Usage:
-    export DATABASE_URL="postgresql://user:pass@localhost:5432/opengovt"
+    export DATABASE_URL="postgresql://username:password@host:port/database"
     python analyze_tweets.py --analyze-sentiment --analyze-toxicity
     python analyze_tweets.py --person-id 123 --analyze-all
     python analyze_tweets.py --extract-statements
