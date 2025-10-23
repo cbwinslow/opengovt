@@ -1,0 +1,381 @@
+name: 📁 File Organization & Structure
+
+on:
+  schedule:
+    - cron: '0 10 * * 0'  # Weekly on Sunday at 10 AM
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+
+jobs:
+  analyze-structure:
+    name: Analyze Repository Structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Analyze file organization
+        run: |
+          python << 'EOF'
+          import os
+          from pathlib import Path
+          from collections import defaultdict
+          
+          print("# Repository Structure Analysis\n")
+          
+          # Count files by type
+          file_types = defaultdict(int)
+          file_sizes = defaultdict(list)
+          dir_structure = defaultdict(int)
+          
+          for root, dirs, files in os.walk('.'):
+              # Skip common ignore directories
+              dirs[:] = [d for d in dirs if d not in ['.git', 'node_modules', '.venv', 'venv', '__pycache__']]
+              
+              for file in files:
+                  ext = Path(file).suffix or 'no_extension'
+                  file_types[ext] += 1
+                  
+                  filepath = os.path.join(root, file)
+                  try:
+                      size = os.path.getsize(filepath)
+                      file_sizes[ext].append(size)
+                  except:
+                      pass
+              
+              # Count files per directory
+              if files:
+                  dir_structure[root] = len(files)
+          
+          print("## File Type Distribution\n")
+          print("| Extension | Count | Avg Size (KB) |")
+          print("|-----------|-------|---------------|")
+          for ext, count in sorted(file_types.items(), key=lambda x: x[1], reverse=True):
+              avg_size = sum(file_sizes[ext]) / len(file_sizes[ext]) / 1024 if file_sizes[ext] else 0
+              print(f"| {ext} | {count} | {avg_size:.2f} |")
+          
+          print("\n## Directories with Most Files\n")
+          print("| Directory | File Count |")
+          print("|-----------|------------|")
+          for dir_path, count in sorted(dir_structure.items(), key=lambda x: x[1], reverse=True)[:10]:
+              print(f"| {dir_path} | {count} |")
+          
+          print("\n## Recommendations\n")
+          
+          # Check for files in root
+          root_files = [f for f in os.listdir('.') if os.path.isfile(f)]
+          python_in_root = [f for f in root_files if f.endswith('.py')]
+          
+          if len(python_in_root) > 10:
+              print(f"⚠️  {len(python_in_root)} Python files in root directory. Consider organizing into subdirectories.\n")
+          
+          # Check for large files
+          large_files = []
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if d not in ['.git', 'node_modules', '.venv']]
+              for file in files:
+                  filepath = os.path.join(root, file)
+                  try:
+                      size = os.path.getsize(filepath)
+                      if size > 1024 * 1024:  # > 1MB
+                          large_files.append((filepath, size / 1024 / 1024))
+                  except:
+                      pass
+          
+          if large_files:
+              print("⚠️  Large files detected:\n")
+              for filepath, size_mb in sorted(large_files, key=lambda x: x[1], reverse=True)[:5]:
+                  print(f"  - {filepath}: {size_mb:.2f} MB")
+          
+          print("\n✅ Analysis complete")
+          EOF
+
+      - name: Generate structure report
+        run: |
+          python << 'EOF'
+          import os
+          
+          def print_tree(directory, prefix="", max_depth=3, current_depth=0):
+              if current_depth >= max_depth:
+                  return
+              
+              try:
+                  entries = sorted(os.listdir(directory))
+              except PermissionError:
+                  return
+              
+              # Filter out common ignore patterns
+              ignore = {'.git', 'node_modules', '.venv', 'venv', '__pycache__', 'dist', 'build'}
+              entries = [e for e in entries if e not in ignore]
+              
+              for i, entry in enumerate(entries):
+                  path = os.path.join(directory, entry)
+                  is_last = i == len(entries) - 1
+                  
+                  print(f"{prefix}{'└── ' if is_last else '├── '}{entry}")
+                  
+                  if os.path.isdir(path) and not entry.startswith('.'):
+                      extension = "    " if is_last else "│   "
+                      print_tree(path, prefix + extension, max_depth, current_depth + 1)
+          
+          print("\n# Directory Tree Structure\n")
+          print("```")
+          print(".")
+          print_tree(".", max_depth=3)
+          print("```")
+          EOF
+
+  check-naming-conventions:
+    name: Check Naming Conventions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Check naming conventions
+        run: |
+          python << 'EOF'
+          import os
+          import re
+          from pathlib import Path
+          
+          print("# Naming Convention Analysis\n")
+          
+          issues = []
+          
+          # Python naming conventions
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if d not in ['.git', 'node_modules', '.venv', 'venv', '__pycache__']]
+              
+              for file in files:
+                  filepath = os.path.join(root, file)
+                  
+                  if file.endswith('.py'):
+                      # Python files should be snake_case
+                      if '-' in file:
+                          issues.append(f"Python file with hyphens: {filepath}")
+                      if any(c.isupper() for c in file.replace('.py', '')):
+                          if file not in ['README.py']:  # Allow some exceptions
+                              issues.append(f"Python file with uppercase: {filepath}")
+                  
+                  elif file.endswith(('.js', '.ts', '.jsx', '.tsx')):
+                      # Check for consistency
+                      pass
+          
+          if issues:
+              print("## Naming Convention Issues\n")
+              for issue in issues[:20]:  # Limit output
+                  print(f"- {issue}")
+          else:
+              print("✅ No major naming convention issues found")
+          EOF
+
+  suggest-organization:
+    name: Suggest File Organization
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Generate organization suggestions
+        run: |
+          python << 'EOF'
+          import os
+          from pathlib import Path
+          from collections import defaultdict
+          
+          print("# File Organization Suggestions\n")
+          
+          # Analyze Python files
+          python_files = []
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if d not in ['.git', 'node_modules', '.venv', 'venv', '__pycache__']]
+              for file in files:
+                  if file.endswith('.py'):
+                      python_files.append(os.path.join(root, file))
+          
+          # Check if there are many Python files in root
+          root_py = [f for f in python_files if f.count(os.sep) == 1]
+          
+          if len(root_py) > 5:
+              print("## Suggested Reorganization\n")
+              print("Consider organizing root Python files into these categories:\n")
+              
+              categories = {
+                  'ingestion': ['ingest', 'download', 'fetch', 'scrape'],
+                  'processing': ['process', 'parse', 'extract', 'transform'],
+                  'database': ['db', 'database', 'sql', 'migration'],
+                  'api': ['api', 'endpoint', 'route', 'server'],
+                  'utils': ['util', 'helper', 'common'],
+                  'config': ['config', 'settings', 'env'],
+              }
+              
+              categorized = defaultdict(list)
+              uncategorized = []
+              
+              for file in root_py:
+                  basename = Path(file).stem.lower()
+                  matched = False
+                  
+                  for category, keywords in categories.items():
+                      if any(kw in basename for kw in keywords):
+                          categorized[category].append(file)
+                          matched = True
+                          break
+                  
+                  if not matched:
+                      uncategorized.append(file)
+              
+              for category, files in categorized.items():
+                  if files:
+                      print(f"\n### {category}/")
+                      for file in files:
+                          print(f"- {file}")
+              
+              if uncategorized:
+                  print(f"\n### Uncategorized")
+                  for file in uncategorized[:10]:
+                      print(f"- {file}")
+          
+          print("\n## Best Practices\n")
+          print("1. Group related functionality into modules")
+          print("2. Use clear, descriptive directory names")
+          print("3. Keep the root directory clean")
+          print("4. Separate concerns (data, business logic, presentation)")
+          print("5. Use __init__.py files to make packages importable")
+          EOF
+
+  check-file-permissions:
+    name: Check File Permissions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check executable permissions
+        run: |
+          echo "# File Permission Analysis"
+          echo ""
+          echo "## Executable Files"
+          find . -type f -executable -not -path "./.git/*" -not -path "./node_modules/*" | while read file; do
+            echo "- $file"
+          done
+          
+          echo ""
+          echo "## Scripts without shebang"
+          find . -name "*.sh" -type f | while read file; do
+            if ! head -n 1 "$file" | grep -q "^#!"; then
+              echo "- $file (missing shebang)"
+            fi
+          done
+
+  detect-duplicate-files:
+    name: Detect Duplicate Files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find duplicate files
+        run: |
+          echo "# Duplicate File Detection"
+          echo ""
+          
+          # Find files with same name
+          find . -type f -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.venv/*" | \
+            sed 's|.*/||' | sort | uniq -d | while read filename; do
+              echo "## Duplicate filename: $filename"
+              find . -name "$filename" -type f -not -path "./.git/*" -not -path "./node_modules/*"
+              echo ""
+            done
+
+  create-structure-documentation:
+    name: Create Structure Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Generate STRUCTURE.md
+        run: |
+          python << 'EOF'
+          import os
+          from pathlib import Path
+          
+          def generate_tree(directory, prefix="", max_depth=4, current_depth=0, output_lines=[]):
+              if current_depth >= max_depth:
+                  return output_lines
+              
+              try:
+                  entries = sorted(os.listdir(directory))
+              except PermissionError:
+                  return output_lines
+              
+              ignore = {'.git', 'node_modules', '.venv', 'venv', '__pycache__', 'dist', 'build', '.pytest_cache'}
+              entries = [e for e in entries if e not in ignore and not e.startswith('.')]
+              
+              for i, entry in enumerate(entries):
+                  path = os.path.join(directory, entry)
+                  is_last = i == len(entries) - 1
+                  
+                  # Add description for known directories
+                  descriptions = {
+                      'models': '🏗️  Data models and schemas',
+                      'app': '🚀 Application code',
+                      'docs': '📚 Documentation',
+                      'examples': '💻 Example code',
+                      'analysis': '🧠 Analysis modules',
+                      '.github': '⚙️  GitHub workflows and configs',
+                      'go-tui': '🖥️  Go TUI application',
+                  }
+                  
+                  desc = descriptions.get(entry, '')
+                  line = f"{prefix}{'└── ' if is_last else '├── '}{entry}"
+                  if desc:
+                      line += f"  {desc}"
+                  
+                  output_lines.append(line)
+                  
+                  if os.path.isdir(path):
+                      extension = "    " if is_last else "│   "
+                      generate_tree(path, prefix + extension, max_depth, current_depth + 1, output_lines)
+              
+              return output_lines
+          
+          with open('STRUCTURE.md', 'w') as f:
+              f.write("# Repository Structure\n\n")
+              f.write("Auto-generated documentation of the repository structure.\n\n")
+              f.write("```\n.\n")
+              lines = generate_tree(".", max_depth=3)
+              f.write('\n'.join(lines))
+              f.write("\n```\n")
+          
+          print("✅ STRUCTURE.md generated")
+          EOF
+
+      - name: Commit structure documentation
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            git config --local user.email "github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git add STRUCTURE.md
+            git commit -m "📁 Update repository structure documentation"
+            git push || echo "No changes to push"
+          fi

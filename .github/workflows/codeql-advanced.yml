@@ -1,0 +1,107 @@
+name: 🔒 CodeQL Advanced Security Analysis
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 5 * * 2'  # Weekly on Tuesday at 5 AM
+
+jobs:
+  codeql-analyze:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript', 'python', 'go']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+          config: |
+            paths-ignore:
+              - node_modules
+              - '**/*.test.js'
+              - '**/*.test.ts'
+              - '**/*.test.py'
+              - '**/__tests__/**'
+              - '**/test_*.py'
+              - dist
+              - build
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          upload: true
+          output: codeql-results
+
+      - name: Upload CodeQL Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: codeql-results-${{ matrix.language }}
+          path: codeql-results
+
+  semgrep-scan:
+    name: Semgrep Security Scan
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan --config=auto --json --output=semgrep-report.json || true
+          semgrep scan --config=auto --sarif --output=semgrep-results.sarif || true
+
+      - name: Upload Semgrep SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep-results.sarif
+
+      - name: Upload Semgrep Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-security-report
+          path: semgrep-report.json
+
+  checkov-scan:
+    name: Checkov IaC Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: all
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          soft_fail: true
+
+      - name: Upload Checkov SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif

@@ -1,0 +1,291 @@
+name: 📚 Documentation Generation & Updates
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - '**.py'
+      - '**.js'
+      - '**.ts'
+      - '**.go'
+      - 'docs/**'
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 8 * * 5'  # Weekly on Friday at 8 AM
+  workflow_dispatch:
+
+jobs:
+  generate-api-docs:
+    name: Generate API Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install documentation tools
+        run: |
+          pip install sphinx sphinx-rtd-theme pdoc3 pydoc-markdown mkdocs mkdocs-material
+          pip install -r requirements.txt || true
+
+      - name: Generate Python API docs with pdoc3
+        run: |
+          mkdir -p docs/api/python
+          pdoc3 --html --output-dir docs/api/python . --force || true
+
+      - name: Generate function documentation
+        run: python generate_docs.py || true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Generate TypeDoc documentation
+        run: |
+          npx typedoc --out docs/api/typescript --skipErrorChecking || true
+
+      - name: Generate JSDoc documentation
+        run: |
+          npx jsdoc -c jsdoc.json -r . -d docs/api/javascript || true
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Generate Go documentation
+        run: |
+          mkdir -p docs/api/go
+          cd go-tui
+          go doc -all > ../docs/api/go/godoc.txt || true
+          cd ..
+
+      - name: Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-documentation
+          path: docs/api/
+
+  update-readme:
+    name: Update README with Stats
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Generate repository statistics
+        run: |
+          python << 'EOF'
+          import os
+          import subprocess
+          from pathlib import Path
+          
+          def count_files(ext):
+              return len(list(Path('.').rglob(f'*.{ext}')))
+          
+          def count_lines(ext):
+              try:
+                  result = subprocess.run(
+                      f"find . -name '*.{ext}' -type f | xargs wc -l | tail -1",
+                      shell=True,
+                      capture_output=True,
+                      text=True
+                  )
+                  if result.returncode == 0 and result.stdout.strip():
+                      return result.stdout.strip().split()[0]
+              except:
+                  pass
+              return "N/A"
+          
+          stats = {
+              'Python': {'files': count_files('py'), 'lines': count_lines('py')},
+              'JavaScript/TypeScript': {'files': count_files('js') + count_files('ts'), 'lines': 'Multiple'},
+              'Go': {'files': count_files('go'), 'lines': count_lines('go')},
+          }
+          
+          print("\n## Repository Statistics\n")
+          print("| Language | Files | Lines of Code |")
+          print("|----------|-------|---------------|")
+          for lang, data in stats.items():
+              print(f"| {lang} | {data['files']} | {data['lines']} |")
+          EOF
+
+      - name: Update documentation index
+        run: python generate_docs.py || echo "Documentation generation script not found or failed"
+
+  generate-changelog:
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        uses: orhun/git-cliff-action@v2
+        with:
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+
+      - name: Commit changelog
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add CHANGELOG.md || true
+          git commit -m "📝 Update CHANGELOG.md" || true
+          git push || true
+
+  generate-diagrams:
+    name: Generate Architecture Diagrams
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install diagram tools
+        run: |
+          pip install diagrams graphviz pydot
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+
+      - name: Generate dependency graph
+        run: |
+          python << 'EOF'
+          import os
+          import sys
+          
+          try:
+              from diagrams import Diagram, Cluster
+              from diagrams.programming.language import Python, Javascript, Go
+              from diagrams.onprem.database import PostgreSQL
+              from diagrams.generic.storage import Storage
+              
+              with Diagram("OpenGovt Architecture", show=False, direction="TB"):
+                  with Cluster("Data Ingestion"):
+                      python_scripts = Python("Congress API")
+                  
+                  with Cluster("Database"):
+                      db = PostgreSQL("PostgreSQL")
+                  
+                  with Cluster("Web Interface"):
+                      web = Javascript("Web UI")
+                  
+                  with Cluster("TUI"):
+                      tui = Go("Go TUI")
+                  
+                  python_scripts >> db
+                  web >> db
+                  tui >> db
+              
+              print("✓ Architecture diagram generated")
+          except Exception as e:
+              print(f"Could not generate diagram: {e}")
+          EOF
+
+      - name: Upload diagrams
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: architecture-diagrams
+          path: |
+            *.png
+            *.svg
+
+  check-documentation-coverage:
+    name: Check Documentation Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install interrogate
+        run: pip install interrogate
+
+      - name: Check Python docstring coverage
+        run: |
+          interrogate -v . > docstring-coverage.txt || true
+          cat docstring-coverage.txt
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docstring-coverage-report
+          path: docstring-coverage.txt
+
+  markdown-link-check:
+    name: Check Markdown Links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check markdown links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.github/markdown-link-check.json'
+          check-modified-files-only: 'no'
+
+  spell-check:
+    name: Spell Check Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run spell check
+        uses: rojopolis/spellcheck-github-actions@0.33.1
+        with:
+          config_path: .github/spellcheck-config.yml
+          task_name: Markdown
+
+  generate-contributor-docs:
+    name: Generate Contributor Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate contributor stats
+        run: |
+          echo "# Contributors" > CONTRIBUTORS.md
+          echo "" >> CONTRIBUTORS.md
+          echo "Thank you to all contributors!" >> CONTRIBUTORS.md
+          echo "" >> CONTRIBUTORS.md
+          git log --format='%aN' | sort -u >> CONTRIBUTORS.md
+
+      - name: Upload contributor docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: contributor-documentation
+          path: CONTRIBUTORS.md

@@ -1,0 +1,358 @@
+name: 📝 File Header Management
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly on Monday at 3 AM
+  workflow_dispatch:
+
+jobs:
+  check-and-add-headers:
+    name: Check and Add File Headers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Create Header Management Script
+        run: |
+          cat > add_headers.py << 'EOF'
+          #!/usr/bin/env python3
+          """
+          Automated File Header Management Script
+          
+          This script automatically adds headers to files that don't have them.
+          Headers include: name, description, inputs, outputs, usage, date, changelog.
+          """
+          
+          import os
+          import re
+          from datetime import datetime
+          from pathlib import Path
+          import ast
+          import json
+          
+          HEADER_TEMPLATES = {
+              'python': '''"""
+          {name}
+          
+          Description:
+              {description}
+          
+          Inputs:
+              {inputs}
+          
+          Outputs:
+              {outputs}
+          
+          Usage:
+              {usage}
+          
+          Author: Auto-generated
+          Date: {date}
+          Last Modified: {date}
+          
+          Changelog:
+              - {date}: Initial header creation
+          """
+          ''',
+              'javascript': '''/**
+           * {name}
+           * 
+           * Description:
+           *     {description}
+           * 
+           * Inputs:
+           *     {inputs}
+           * 
+           * Outputs:
+           *     {outputs}
+           * 
+           * Usage:
+           *     {usage}
+           * 
+           * @author Auto-generated
+           * @date {date}
+           * @lastModified {date}
+           * 
+           * Changelog:
+           *     - {date}: Initial header creation
+           */
+          ''',
+              'go': '''/*
+          {name}
+          
+          Description:
+              {description}
+          
+          Inputs:
+              {inputs}
+          
+          Outputs:
+              {outputs}
+          
+          Usage:
+              {usage}
+          
+          Author: Auto-generated
+          Date: {date}
+          Last Modified: {date}
+          
+          Changelog:
+              - {date}: Initial header creation
+          */
+          ''',
+              'sql': '''--
+          -- {name}
+          --
+          -- Description:
+          --     {description}
+          --
+          -- Inputs:
+          --     {inputs}
+          --
+          -- Outputs:
+          --     {outputs}
+          --
+          -- Usage:
+          --     {usage}
+          --
+          -- Author: Auto-generated
+          -- Date: {date}
+          -- Last Modified: {date}
+          --
+          -- Changelog:
+          --     - {date}: Initial header creation
+          --
+          '''
+          }
+          
+          def extract_python_info(filepath):
+              """Extract information from Python file."""
+              try:
+                  with open(filepath, 'r') as f:
+                      content = f.read()
+                  
+                  tree = ast.parse(content)
+                  
+                  # Get module docstring
+                  docstring = ast.get_docstring(tree) or ""
+                  
+                  # Find functions and classes
+                  functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+                  classes = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+                  
+                  # Find imports
+                  imports = []
+                  for node in ast.walk(tree):
+                      if isinstance(node, ast.Import):
+                          imports.extend([alias.name for alias in node.names])
+                      elif isinstance(node, ast.ImportFrom):
+                          imports.append(node.module or "")
+                  
+                  description = docstring.split('\n')[0] if docstring else f"Module: {Path(filepath).stem}"
+                  inputs = "Command-line arguments, environment variables"
+                  outputs = "Console output, log files, or data files"
+                  usage = f"python {Path(filepath).name}"
+                  
+                  if functions:
+                      description += f" | Functions: {', '.join(functions[:3])}"
+                  if classes:
+                      description += f" | Classes: {', '.join(classes[:3])}"
+                  
+                  return {
+                      'description': description,
+                      'inputs': inputs,
+                      'outputs': outputs,
+                      'usage': usage
+                  }
+              except Exception as e:
+                  return None
+          
+          def has_header(filepath, file_type):
+              """Check if file already has a header."""
+              try:
+                  with open(filepath, 'r') as f:
+                      content = f.read(500)  # Read first 500 chars
+                  
+                  # Check for common header patterns
+                  patterns = [
+                      r'Description:',
+                      r'@description',
+                      r'Inputs:',
+                      r'Outputs:',
+                      r'Usage:',
+                      r'@author',
+                      r'Author:',
+                      r'Copyright',
+                      r'License:'
+                  ]
+                  
+                  for pattern in patterns:
+                      if re.search(pattern, content, re.IGNORECASE):
+                          return True
+                  
+                  return False
+              except Exception:
+                  return True  # If can't read, assume it has header
+          
+          def add_header_to_file(filepath, file_type):
+              """Add header to a file."""
+              try:
+                  # Extract file information
+                  info = None
+                  if file_type == 'python':
+                      info = extract_python_info(filepath)
+                  
+                  if not info:
+                      info = {
+                          'description': f"Module: {Path(filepath).stem}",
+                          'inputs': "Depends on implementation",
+                          'outputs': "Depends on implementation",
+                          'usage': f"See code for usage examples"
+                      }
+                  
+                  # Generate header
+                  header_data = {
+                      'name': Path(filepath).name,
+                      'description': info['description'],
+                      'inputs': info['inputs'],
+                      'outputs': info['outputs'],
+                      'usage': info['usage'],
+                      'date': datetime.now().strftime('%Y-%m-%d')
+                  }
+                  
+                  header = HEADER_TEMPLATES[file_type].format(**header_data)
+                  
+                  # Read current content
+                  with open(filepath, 'r') as f:
+                      content = f.read()
+                  
+                  # Add shebang back for Python if it exists
+                  if file_type == 'python' and content.startswith('#!'):
+                      shebang = content.split('\n')[0] + '\n'
+                      content = '\n'.join(content.split('\n')[1:])
+                      new_content = shebang + header + '\n' + content
+                  else:
+                      new_content = header + '\n' + content
+                  
+                  # Write back
+                  with open(filepath, 'w') as f:
+                      f.write(new_content)
+                  
+                  print(f"✓ Added header to: {filepath}")
+                  return True
+              except Exception as e:
+                  print(f"✗ Error processing {filepath}: {str(e)}")
+                  return False
+          
+          def process_files():
+              """Process all files in the repository."""
+              file_mappings = {
+                  '.py': 'python',
+                  '.js': 'javascript',
+                  '.ts': 'javascript',
+                  '.go': 'go',
+                  '.sql': 'sql'
+              }
+              
+              exclude_dirs = {'.git', 'node_modules', '.venv', 'venv', '__pycache__', '.pytest_cache', 'dist', 'build'}
+              
+              stats = {'checked': 0, 'added': 0, 'skipped': 0, 'errors': 0}
+              
+              for root, dirs, files in os.walk('.'):
+                  # Remove excluded directories
+                  dirs[:] = [d for d in dirs if d not in exclude_dirs]
+                  
+                  for file in files:
+                      ext = Path(file).suffix
+                      if ext in file_mappings:
+                          filepath = os.path.join(root, file)
+                          file_type = file_mappings[ext]
+                          
+                          stats['checked'] += 1
+                          
+                          if has_header(filepath, file_type):
+                              stats['skipped'] += 1
+                          else:
+                              if add_header_to_file(filepath, file_type):
+                                  stats['added'] += 1
+                              else:
+                                  stats['errors'] += 1
+              
+              print(f"\n=== Statistics ===")
+              print(f"Files checked: {stats['checked']}")
+              print(f"Headers added: {stats['added']}")
+              print(f"Files skipped (already have headers): {stats['skipped']}")
+              print(f"Errors: {stats['errors']}")
+          
+          if __name__ == '__main__':
+              print("=== File Header Management ===")
+              print("Scanning repository for files without headers...\n")
+              process_files()
+          EOF
+          chmod +x add_headers.py
+
+      - name: Run Header Addition
+        run: python add_headers.py
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check_changes.outputs.changes == 'true' && github.event_name != 'pull_request'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            📝 Add file headers to files missing them
+            
+            Automatically added headers with metadata to files that didn't have them.
+            Headers include: name, description, inputs, outputs, usage, date, and changelog.
+          title: '📝 Add File Headers (Automated)'
+          body: |
+            ## Automated File Header Addition
+            
+            This PR adds standardized headers to files that were missing them.
+            
+            ### What's included in headers:
+            - File name and description
+            - Inputs and outputs
+            - Usage information
+            - Author and date information
+            - Changelog
+            
+            ### Files modified:
+            All files that previously lacked headers now have standardized documentation.
+            
+            Please review the changes to ensure accuracy.
+          branch: automated/add-file-headers
+          delete-branch: true
+          labels: documentation, automated
+
+      - name: Comment on PR (if in PR context)
+        if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '📝 **File Header Check**: Some files in this PR are missing headers. Consider adding standardized headers with description, inputs, outputs, and usage information.'
+            });
