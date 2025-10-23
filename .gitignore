@@ -52,6 +52,7 @@ eggs/
 lib/
 lib64/
 parts/
+!frontend-v2/lib/
 sdist/
 var/
 wheels/
@@ -87,4 +88,9 @@ bulk_data/
 
 # Test coverage
 .coverage
-htmlcov/
+htmlcov/frontend-v2/node_modules/
+frontend-v2/.next/
+frontend-v2/out/
+
+# Exception: allow frontend-v2/lib directory for utility modules
+!frontend-v2/lib/

@@ -1,18 +1,4 @@
-```markdown
-# cbw Congress Bulk Ingest - Multi-file Package
 
-## 📖 Documentation
-
-**For comprehensive documentation of all files in this repository, see [COMPREHENSIVE_FILE_GUIDE.md](COMPREHENSIVE_FILE_GUIDE.md)**
-
-This guide includes:
-- Detailed documentation of every script with headers (Name, Date, Summary, Inputs, Outputs, Parameters, Changelog)
-- Complete data flow architecture diagrams
-- File relationships and dependencies
-- Module interaction diagrams
-- Quick reference for common tasks
-
----
 
 Overview
 - Purpose: End-to-end OOP pipeline to discover, download, extract, parse, normalize,
@@ -63,3 +49,47 @@ Notes
   - Expand the Go TUI to call the HTTP control API and display live progress.
   - Add Prometheus metric counters in the Python code (currently placeholders).
   - Provide unit tests and CI workflow.
+
+## 🎯 OpenDiscourse Project
+
+This repository is part of the **OpenDiscourse.net** project, which provides comprehensive analysis and transparency for government legislative data. 
+
+### Project Status & Roadmap
+
+See **[OPENDISCOURSE_PROJECT.md](OPENDISCOURSE_PROJECT.md)** for:
+- Development roadmap and timeline
+- Project items categorized by priority (Short/Medium/Long term)
+- Detailed tasks and success criteria for each feature
+- Current implementation status
+
+### Key Features (Planned & In Development)
+
+**Analysis Capabilities:**
+- 🔍 Embeddings & similarity search for legislative text
+- 📊 Sentiment analysis of bills and speeches
+- 🏷️ Entity extraction and NLP processing
+- ⚖️ Political bias detection
+- 📈 Voting consistency tracking
+
+**Upcoming Features:**
+- Legal text-specific embedding models
+- Topic modeling (LDA, BERTopic)
+- Fact-checking integration
+- Interactive visualization dashboards
+- Real-time analysis API
+- Alert system for position changes
+
+### Contributing to OpenDiscourse
+
+Check the [project issues](.github/project-issues/) for detailed specifications of planned features:
+- [01-legal-embeddings.md](.github/project-issues/01-legal-embeddings.md) - Specialized embedding models
+- [02-topic-modeling.md](.github/project-issues/02-topic-modeling.md) - Topic categorization
+- [03-fact-checking.md](.github/project-issues/03-fact-checking.md) - Claim verification
+- [04-visualization-dashboards.md](.github/project-issues/04-visualization-dashboards.md) - Interactive dashboards
+- And more...
+
+### Related Resources
+
+- **Analysis Modules**: See [docs/ANALYSIS_MODULES.md](docs/ANALYSIS_MODULES.md)
+- **Data Sources**: See [docs/GOVERNMENT_DATA_RESOURCES.md](docs/GOVERNMENT_DATA_RESOURCES.md)
+- **Implementation Summary**: See [docs/IMPLEMENTATION_SUMMARY.md](docs/IMPLEMENTATION_SUMMARY.md)
