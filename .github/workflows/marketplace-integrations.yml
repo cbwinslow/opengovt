@@ -91,7 +91,13 @@ jobs:
     name: Close Stale Issues
     runs-on: ubuntu-latest
     permissions:
-      issues: write
+      contents: read
+
+    jobs:
+      stale-issues:
+        permissions:
+          issues: write
+          pull-requests: write
       pull-requests: write
     steps:
       - uses: actions/stale@v8
