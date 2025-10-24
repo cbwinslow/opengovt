@@ -136,14 +136,16 @@ Extracted political statements at multiple granularity levels.
 Use the `twitter_ingestion.py` script to collect tweets:
 
 ```bash
+# Set database URL as environment variable (required)
+export DATABASE_URL="postgresql://username:password@host:port/database"
+
 # Collect tweets for a specific politician
 python scripts/twitter_ingestion.py \
   --person-id 123 \
   --username SenatorSmith \
   --days 30 \
   --include-replies \
-  --max-tweets 1000 \
-  --db-url postgresql://user:pass@localhost/opengovt
+  --max-tweets 1000
 ```
 
 **Parameters:**
@@ -152,6 +154,8 @@ python scripts/twitter_ingestion.py \
 - `--days`: Number of days of history to fetch (default: 30)
 - `--include-replies`: Also fetch replies to each tweet
 - `--max-tweets`: Maximum number of tweets to collect (default: 1000)
+
+**Note:** Database connection URL must be provided via the `DATABASE_URL` environment variable for security reasons. Never pass database credentials via command-line arguments.
 
 ### Batch Processing
 
@@ -197,6 +201,11 @@ for pol in config['politicians']:
 ```
 
 ## Analysis Features
+
+**Prerequisites:** All analysis scripts require the `DATABASE_URL` environment variable to be set:
+```bash
+export DATABASE_URL="postgresql://username:password@host:port/database"
+```
 
 ### Sentiment Analysis
 

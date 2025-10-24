@@ -11,8 +11,11 @@ Example extractions:
 - Short: "Senator X voted to increase taxes"
 
 Usage:
+    export DATABASE_URL="postgresql://username:password@host:port/database"
     python extract_statements.py --source tweets --person-id 123
     python extract_statements.py --source bills --extract-all
+
+Note: DATABASE_URL must be set as an environment variable for security.
 """
 
 import os
@@ -390,14 +393,13 @@ def main():
                        default='all', help='Source to extract from')
     parser.add_argument('--person-id', type=int, help='Extract for specific person')
     parser.add_argument('--batch-size', type=int, default=100, help='Batch size')
-    parser.add_argument('--db-url', type=str, help='Database connection URL')
     
     args = parser.parse_args()
     
-    # Get database URL
-    db_url = args.db_url or os.getenv('DATABASE_URL')
+    # Get database URL from environment variable only (more secure than CLI argument)
+    db_url = os.getenv('DATABASE_URL')
     if not db_url:
-        logger.error("Database URL is required (--db-url or DATABASE_URL env var)")
+        logger.error("DATABASE_URL environment variable is required")
         sys.exit(1)
     
     # Initialize processor
