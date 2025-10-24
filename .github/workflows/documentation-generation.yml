@@ -113,8 +113,10 @@ jobs:
                       text=True
                   )
                   if result.returncode == 0 and result.stdout.strip():
-                      return result.stdout.strip().split()[0]
-              except:
+                      split_result = result.stdout.strip().split()
+                      if len(split_result) > 0:
+                          return split_result[0]
+              except Exception:
                   pass
               return "N/A"
           

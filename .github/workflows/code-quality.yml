@@ -72,7 +72,7 @@ jobs:
         run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
 
       - name: Run Pylint
-        run: pylint **/*.py --exit-zero || true
+        run: find . -name '*.py' -type f | xargs pylint --exit-zero || true
 
       - name: Run MyPy (type checking)
         run: mypy . --ignore-missing-imports --no-strict-optional || true

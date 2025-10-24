@@ -193,8 +193,8 @@ jobs:
                               content = f.read()
                               if sql_pattern.search(content):
                                   print(f"  Found SQL in: {filepath}")
-                      except Exception:
-                          pass
+                      except Exception as e:
+                          print(f"  [ERROR] Could not read {filepath}: {e}")
           
           print("✓ SQL syntax scan complete")
           EOF

@@ -48,7 +48,7 @@ jobs:
                   try:
                       size = os.path.getsize(filepath)
                       file_sizes[ext].append(size)
-                  except:
+                  except Exception:
                       pass
               
               # Count files per directory
