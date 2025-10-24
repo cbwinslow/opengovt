@@ -1,0 +1,282 @@
+name: 🔧 Code Maintenance & Cleanup
+
+on:
+  schedule:
+    - cron: '0 7 * * 4'  # Weekly on Thursday at 7 AM
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  dead-code-detection:
+    name: Dead Code Detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install vulture
+        run: pip install vulture
+
+      - name: Run vulture (Python dead code detection)
+        run: |
+          vulture . --min-confidence 80 > vulture-report.txt || true
+          cat vulture-report.txt
+
+      - name: Upload vulture report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dead-code-report
+          path: vulture-report.txt
+
+  duplicate-code-detection:
+    name: Duplicate Code Detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: pip install pylint
+
+      - name: Run duplicate code detection
+        run: |
+          pylint --disable=all --enable=duplicate-code . > duplicates-report.txt || true
+          cat duplicates-report.txt
+
+      - name: Upload duplicates report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: duplicate-code-report
+          path: duplicates-report.txt
+
+      - name: Setup Node.js for jscpd
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run jscpd (JavaScript/TypeScript duplicate detection)
+        run: |
+          npx jscpd . --reporters json --output jscpd-report || true
+
+      - name: Upload jscpd report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jscpd-duplicate-report
+          path: jscpd-report
+
+  code-metrics:
+    name: Code Metrics & Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: pip install radon mccabe
+
+      - name: Calculate code metrics
+        run: |
+          echo "# Code Metrics Report" > metrics-report.md
+          echo "" >> metrics-report.md
+          
+          echo "## Cyclomatic Complexity" >> metrics-report.md
+          radon cc . -a -s >> metrics-report.md || true
+          
+          echo "" >> metrics-report.md
+          echo "## Maintainability Index" >> metrics-report.md
+          radon mi . -s >> metrics-report.md || true
+          
+          echo "" >> metrics-report.md
+          echo "## Raw Metrics" >> metrics-report.md
+          radon raw . -s >> metrics-report.md || true
+          
+          echo "" >> metrics-report.md
+          echo "## Halstead Metrics" >> metrics-report.md
+          radon hal . >> metrics-report.md || true
+
+      - name: Count lines of code
+        run: |
+          echo "" >> metrics-report.md
+          echo "## Lines of Code" >> metrics-report.md
+          echo "\`\`\`" >> metrics-report.md
+          find . -name "*.py" -type f | xargs wc -l | tail -1 >> metrics-report.md
+          echo "\`\`\`" >> metrics-report.md
+
+      - name: Upload metrics report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-metrics-report
+          path: metrics-report.md
+
+  unused-dependencies:
+    name: Find Unused Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Find unused npm dependencies
+        run: |
+          npx depcheck --json > depcheck-report.json || true
+          npx depcheck || true
+
+      - name: Upload depcheck report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unused-dependencies-report
+          path: depcheck-report.json
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Find unused Python imports
+        run: |
+          pip install autoflake
+          find . -name "*.py" -type f | while read file; do
+            echo "Checking $file"
+            autoflake --check --remove-all-unused-imports "$file" || true
+          done
+
+  todo-comments:
+    name: Find TODO/FIXME Comments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find TODO and FIXME comments
+        run: |
+          echo "# TODO and FIXME Comments" > todo-report.md
+          echo "" >> todo-report.md
+          
+          echo "## Python Files" >> todo-report.md
+          grep -r -n "TODO\|FIXME\|XXX\|HACK" --include="*.py" . >> todo-report.md || echo "No TODOs found in Python files" >> todo-report.md
+          
+          echo "" >> todo-report.md
+          echo "## JavaScript/TypeScript Files" >> todo-report.md
+          grep -r -n "TODO\|FIXME\|XXX\|HACK" --include="*.js" --include="*.ts" --include="*.jsx" --include="*.tsx" . >> todo-report.md || echo "No TODOs found in JS/TS files" >> todo-report.md
+          
+          echo "" >> todo-report.md
+          echo "## Go Files" >> todo-report.md
+          grep -r -n "TODO\|FIXME\|XXX\|HACK" --include="*.go" . >> todo-report.md || echo "No TODOs found in Go files" >> todo-report.md
+
+      - name: Upload TODO report
+        uses: actions/upload-artifact@v4
+        with:
+          name: todo-comments-report
+          path: todo-report.md
+
+  code-churn:
+    name: Code Churn Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze code churn
+        run: |
+          echo "# Code Churn Analysis" > churn-report.md
+          echo "" >> churn-report.md
+          echo "Files changed most frequently in the last 30 days:" >> churn-report.md
+          echo "" >> churn-report.md
+          echo "\`\`\`" >> churn-report.md
+          git log --since="30 days ago" --pretty=format: --name-only | sort | uniq -c | sort -rg | head -20 >> churn-report.md || true
+          echo "\`\`\`" >> churn-report.md
+
+      - name: Upload churn report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-churn-report
+          path: churn-report.md
+
+  refactoring-suggestions:
+    name: AI Refactoring Suggestions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install radon requests
+
+      - name: Generate refactoring suggestions
+        run: |
+          python << 'EOF'
+          import os
+          
+          print("# Refactoring Suggestions")
+          print("")
+          print("## High Complexity Functions")
+          print("Functions with cyclomatic complexity > 10 should be refactored:")
+          print("")
+          
+          # Use radon to find complex functions
+          os.system("radon cc . -n C -s")
+          
+          print("")
+          print("## Low Maintainability")
+          print("Files with maintainability index < 20:")
+          print("")
+          os.system("radon mi . -n C -s")
+          EOF
+
+  update-dependencies:
+    name: Check for Dependency Updates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Check for npm updates
+        run: |
+          npm ci || npm install
+          npx npm-check-updates || true
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Check for pip updates
+        run: |
+          pip install pip-check
+          pip-check || true

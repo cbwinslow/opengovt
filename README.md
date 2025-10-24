@@ -4,12 +4,18 @@ A comprehensive platform for ingesting, analyzing, and providing transparency fo
 
 ## 🎯 Overview
 
-OpenGovt is an end-to-end pipeline that:
-- **Ingests** legislative data from Congress.gov, GovInfo, OpenStates, and other sources
-- **Collects** social media data (Twitter/X) from politicians and analyzes public engagement
-- **Analyzes** bills, votes, speeches, and tweets using advanced NLP and ML techniques
-- **Extracts** political statements and positions at multiple granularity levels
-- **Provides** comprehensive analysis including sentiment, toxicity, bias, and consistency tracking
+## 🤖 Automated Workflows
+
+This repository uses comprehensive GitHub Actions workflows for code quality, security, and automation:
+
+- **12 Custom Workflows** - Code quality, security, documentation, AI analysis, and more
+- **20+ Marketplace Actions** - Integration with best-in-class tools
+- **9 AI Agents** - CrewAI-powered code analysis and improvements
+- **Automated Updates** - Dependabot for dependencies, auto-formatting, file headers
+
+📖 **[Quick Start Guide](.github/WORKFLOWS_QUICKSTART.md)** | 📚 **[Full Workflows Guide](.github/WORKFLOWS_GUIDE.md)**
+
+## 📚 Documentation
 
 ## ✨ Key Features
 

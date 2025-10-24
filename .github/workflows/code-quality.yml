@@ -1,0 +1,181 @@
+name: 🧹 Code Quality & Linting
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  super-linter:
+    name: Super-Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Super-Linter
+        uses: github/super-linter@v5
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_PYTHON_BLACK: true
+          VALIDATE_PYTHON_FLAKE8: true
+          VALIDATE_PYTHON_PYLINT: true
+          VALIDATE_PYTHON_ISORT: true
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_TYPESCRIPT_ES: true
+          VALIDATE_JSON: true
+          VALIDATE_YAML: true
+          VALIDATE_XML: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_BASH: true
+          VALIDATE_DOCKERFILE: true
+          VALIDATE_GO: true
+          VALIDATE_SQL: true
+          LOG_LEVEL: WARN
+
+  python-linting:
+    name: Python Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black flake8 pylint isort mypy bandit safety
+          pip install -r requirements.txt || true
+
+      - name: Run Black (formatting check)
+        run: black --check --diff . || true
+
+      - name: Run isort (import sorting)
+        run: isort --check-only --diff . || true
+
+      - name: Run Flake8
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+
+      - name: Run Flake8 (warnings)
+        run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
+
+      - name: Run Pylint
+        run: find . -name '*.py' -type f | xargs pylint --exit-zero || true
+
+      - name: Run MyPy (type checking)
+        run: mypy . --ignore-missing-imports --no-strict-optional || true
+
+      - name: Run Bandit (security linting)
+        run: bandit -r . -f json -o bandit-report.json --exit-zero || true
+
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+
+  javascript-linting:
+    name: JavaScript/TypeScript Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx --max-warnings 0 || true
+
+      - name: Run Prettier check
+        run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,md}" || true
+
+      - name: TypeScript type checking
+        run: npx tsc --noEmit --skipLibCheck || true
+
+  go-linting:
+    name: Go Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m
+
+      - name: Run go vet
+        run: go vet ./... || true
+
+      - name: Run staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./... || true
+
+  sql-linting:
+    name: SQL Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python for sqlfluff
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install sqlfluff
+        run: pip install sqlfluff
+
+      - name: Run sqlfluff
+        run: |
+          find . -name "*.sql" -type f | while read file; do
+            echo "Linting $file"
+            sqlfluff lint "$file" --dialect postgres || true
+          done
+
+  code-complexity:
+    name: Code Complexity Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install radon
+        run: pip install radon
+
+      - name: Cyclomatic Complexity
+        run: radon cc . -a -s || true
+
+      - name: Maintainability Index
+        run: radon mi . -s || true
+
+      - name: Raw Metrics
+        run: radon raw . -s || true

@@ -1,0 +1,103 @@
+# Auto-labeler configuration for pull requests
+
+# Python-related changes
+python:
+  - '**/*.py'
+  - requirements.txt
+  - requirements-*.txt
+  - setup.py
+  - pyproject.toml
+
+# JavaScript/TypeScript changes
+javascript:
+  - '**/*.js'
+  - '**/*.jsx'
+
+typescript:
+  - '**/*.ts'
+  - '**/*.tsx'
+  - tsconfig.json
+
+# Go changes
+go:
+  - '**/*.go'
+  - go.mod
+  - go.sum
+
+# Documentation changes
+documentation:
+  - '**/*.md'
+  - docs/**/*
+  - README*
+  - CHANGELOG*
+  - LICENSE*
+
+# Configuration changes
+config:
+  - '**/*.yml'
+  - '**/*.yaml'
+  - '**/*.json'
+  - '**/*.toml'
+  - .gitignore
+  - .env*
+
+# Database/Models
+database:
+  - models/**/*
+  - '**/*.sql'
+  - '**/db/**/*'
+  - '**/migrations/**/*'
+
+# Tests
+tests:
+  - '**/*.test.js'
+  - '**/*.test.ts'
+  - '**/*.test.py'
+  - '**/test_*.py'
+  - tests/**/*
+  - __tests__/**/*
+
+# GitHub Actions
+github-actions:
+  - .github/workflows/**/*
+  - .github/actions/**/*
+
+# Dependencies
+dependencies:
+  - package.json
+  - package-lock.json
+  - requirements.txt
+  - go.mod
+  - go.sum
+
+# Frontend
+frontend:
+  - app/**/*.tsx
+  - app/**/*.jsx
+  - app/**/*.css
+  - '**/components/**/*'
+
+# Backend
+backend:
+  - app/**/*.py
+  - models/**/*
+  - '**/api/**/*'
+
+# Analysis/ML
+analysis:
+  - analysis/**/*
+  - '**/embeddings*'
+  - '**/sentiment*'
+  - '**/nlp*'
+
+# Docker
+docker:
+  - Dockerfile*
+  - docker-compose*.yml
+  - .dockerignore
+
+# CI/CD
+ci-cd:
+  - .github/workflows/**/*
+  - .gitlab-ci.yml
+  - azure-pipelines.yml
