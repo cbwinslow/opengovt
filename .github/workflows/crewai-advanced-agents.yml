@@ -1,0 +1,440 @@
+name: 🤖 CrewAI Advanced AI Agents
+
+on:
+  workflow_dispatch:
+    inputs:
+      agent_task:
+        description: 'AI Agent Task'
+        required: true
+        type: choice
+        options:
+          - code-review-agent
+          - test-generation-agent
+          - documentation-agent
+          - refactoring-agent
+          - security-audit-agent
+          - performance-optimization-agent
+          - bug-detection-agent
+          - code-explanation-agent
+          - architecture-analysis-agent
+          - database-optimization-agent
+      target_files:
+        description: 'Target files/directories (optional, comma-separated)'
+        required: false
+        type: string
+  schedule:
+    - cron: '0 9 * * 6'  # Weekly on Saturday at 9 AM
+
+permissions:
+  contents: read
+
+jobs:
+  setup-agents:
+    name: Setup AI Agent Environment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install CrewAI and dependencies
+        run: |
+          pip install crewai crewai-tools langchain langchain-openai
+          pip install openai anthropic requests beautifulsoup4
+          pip install -r requirements.txt || true
+
+      - name: Cache AI models
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/crewai
+          key: crewai-models-${{ runner.os }}
+
+  code-review-agent:
+    name: AI Code Review Agent
+    runs-on: ubuntu-latest
+    needs: setup-agents
+    if: github.event.inputs.agent_task == 'code-review-agent' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install crewai crewai-tools langchain openai requests
+
+      - name: Run Code Review Agent
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LOCALAI_BASE_URL: ${{ secrets.LOCALAI_BASE_URL }}
+        run: |
+          python << 'EOF'
+          from crewai import Agent, Task, Crew
+          import os
+          
+          # Define code review agent
+          code_reviewer = Agent(
+              role='Senior Code Reviewer',
+              goal='Perform comprehensive code review and provide actionable feedback',
+              backstory="""You are an experienced software engineer with expertise in 
+              Python, JavaScript, Go, and best practices. You focus on code quality, 
+              security, performance, and maintainability.""",
+              verbose=True,
+              allow_delegation=False
+          )
+          
+          # Define task
+          review_task = Task(
+              description="""Review the codebase for:
+              1. Code quality and best practices
+              2. Security vulnerabilities
+              3. Performance issues
+              4. Maintainability concerns
+              5. Documentation gaps
+              
+              Provide specific, actionable recommendations.""",
+              agent=code_reviewer,
+              expected_output="Detailed code review report with specific recommendations"
+          )
+          
+          # Create crew
+          crew = Crew(
+              agents=[code_reviewer],
+              tasks=[review_task],
+              verbose=True
+          )
+          
+          # Execute
+          try:
+              result = crew.kickoff()
+              print("\n=== Code Review Results ===")
+              print(result)
+              
+              # Save to file
+              with open('code-review-agent-report.md', 'w') as f:
+                  f.write("# AI Code Review Report\n\n")
+                  f.write(str(result))
+          except Exception as e:
+              print(f"Error: {e}")
+              print("Note: AI agents require API keys to function")
+          EOF
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: code-review-agent-report
+          path: code-review-agent-report.md
+
+  test-generation-agent:
+    name: AI Test Generation Agent
+    runs-on: ubuntu-latest
+    needs: setup-agents
+    if: github.event.inputs.agent_task == 'test-generation-agent'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install crewai crewai-tools langchain openai requests
+
+      - name: Run Test Generation Agent
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LOCALAI_BASE_URL: ${{ secrets.LOCALAI_BASE_URL }}
+        run: |
+          python << 'EOF'
+          from crewai import Agent, Task, Crew
+          
+          test_generator = Agent(
+              role='Test Automation Engineer',
+              goal='Generate comprehensive test cases and test code',
+              backstory="""You are a testing expert who writes thorough unit tests,
+              integration tests, and end-to-end tests. You follow testing best practices
+              and ensure high code coverage.""",
+              verbose=True
+          )
+          
+          test_task = Task(
+              description="""Analyze the codebase and generate:
+              1. Unit tests for core functions
+              2. Integration tests for modules
+              3. Edge case tests
+              4. Performance tests
+              5. Test documentation
+              
+              Use pytest for Python and vitest for JavaScript.""",
+              agent=test_generator,
+              expected_output="Generated test files and test documentation"
+          )
+          
+          crew = Crew(agents=[test_generator], tasks=[test_task], verbose=True)
+          
+          try:
+              result = crew.kickoff()
+              with open('test-generation-agent-report.md', 'w') as f:
+                  f.write("# AI Test Generation Report\n\n")
+                  f.write(str(result))
+          except Exception as e:
+              print(f"Note: Test generation requires API keys. Error: {e}")
+          EOF
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-generation-agent-report
+          path: test-generation-agent-report.md
+
+  documentation-agent:
+    name: AI Documentation Agent
+    runs-on: ubuntu-latest
+    needs: setup-agents
+    if: github.event.inputs.agent_task == 'documentation-agent'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install crewai crewai-tools langchain openai requests
+
+      - name: Run Documentation Agent
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LOCALAI_BASE_URL: ${{ secrets.LOCALAI_BASE_URL }}
+        run: |
+          python << 'EOF'
+          from crewai import Agent, Task, Crew
+          
+          doc_writer = Agent(
+              role='Technical Documentation Specialist',
+              goal='Create comprehensive and clear documentation',
+              backstory="""You are a technical writer who excels at creating clear,
+              concise documentation. You understand code and can explain complex concepts
+              in simple terms.""",
+              verbose=True
+          )
+          
+          doc_task = Task(
+              description="""Create documentation for:
+              1. API endpoints and usage
+              2. Module and function documentation
+              3. Setup and installation guides
+              4. Usage examples
+              5. Troubleshooting guides
+              
+              Write in Markdown format.""",
+              agent=doc_writer,
+              expected_output="Comprehensive documentation in Markdown"
+          )
+          
+          crew = Crew(agents=[doc_writer], tasks=[doc_task], verbose=True)
+          
+          try:
+              result = crew.kickoff()
+              with open('documentation-agent-report.md', 'w') as f:
+                  f.write("# AI Documentation Report\n\n")
+                  f.write(str(result))
+          except Exception as e:
+              print(f"Note: Documentation agent requires API keys. Error: {e}")
+          EOF
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: documentation-agent-report
+          path: documentation-agent-report.md
+
+  security-audit-agent:
+    name: AI Security Audit Agent
+    runs-on: ubuntu-latest
+    needs: setup-agents
+    if: github.event.inputs.agent_task == 'security-audit-agent'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install crewai crewai-tools langchain openai requests
+
+      - name: Run Security Audit Agent
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LOCALAI_BASE_URL: ${{ secrets.LOCALAI_BASE_URL }}
+        run: |
+          python << 'EOF'
+          from crewai import Agent, Task, Crew
+          
+          security_expert = Agent(
+              role='Security Audit Specialist',
+              goal='Identify security vulnerabilities and provide remediation steps',
+              backstory="""You are a cybersecurity expert with deep knowledge of
+              common vulnerabilities (OWASP Top 10), secure coding practices, and
+              threat modeling.""",
+              verbose=True
+          )
+          
+          security_task = Task(
+              description="""Perform security audit:
+              1. SQL injection vulnerabilities
+              2. XSS and CSRF risks
+              3. Authentication/authorization issues
+              4. Sensitive data exposure
+              5. API security
+              6. Dependency vulnerabilities
+              
+              Provide severity ratings and remediation steps.""",
+              agent=security_expert,
+              expected_output="Security audit report with vulnerability findings and fixes"
+          )
+          
+          crew = Crew(agents=[security_expert], tasks=[security_task], verbose=True)
+          
+          try:
+              result = crew.kickoff()
+              with open('security-audit-agent-report.md', 'w') as f:
+                  f.write("# AI Security Audit Report\n\n")
+                  f.write(str(result))
+          except Exception as e:
+              print(f"Note: Security audit requires API keys. Error: {e}")
+          EOF
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-audit-agent-report
+          path: security-audit-agent-report.md
+
+  multi-agent-collaboration:
+    name: Multi-Agent Collaboration
+    runs-on: ubuntu-latest
+    needs: setup-agents
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install crewai crewai-tools langchain openai requests
+
+      - name: Run Multi-Agent Crew
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          LOCALAI_BASE_URL: ${{ secrets.LOCALAI_BASE_URL }}
+        run: |
+          python << 'EOF'
+          from crewai import Agent, Task, Crew
+          
+          # Define multiple specialized agents
+          architect = Agent(
+              role='Software Architect',
+              goal='Analyze architecture and suggest improvements',
+              backstory='Expert in system design and architecture patterns',
+              verbose=True
+          )
+          
+          reviewer = Agent(
+              role='Code Reviewer',
+              goal='Review code quality and best practices',
+              backstory='Senior engineer focused on code quality',
+              verbose=True
+          )
+          
+          security = Agent(
+              role='Security Expert',
+              goal='Identify security vulnerabilities',
+              backstory='Cybersecurity specialist',
+              verbose=True
+          )
+          
+          # Define tasks
+          arch_task = Task(
+              description='Analyze overall system architecture and data flow',
+              agent=architect,
+              expected_output='Architecture analysis report'
+          )
+          
+          review_task = Task(
+              description='Review code quality and maintainability',
+              agent=reviewer,
+              expected_output='Code review report'
+          )
+          
+          security_task = Task(
+              description='Audit security vulnerabilities',
+              agent=security,
+              expected_output='Security audit report'
+          )
+          
+          # Create collaborative crew
+          crew = Crew(
+              agents=[architect, reviewer, security],
+              tasks=[arch_task, review_task, security_task],
+              verbose=True
+          )
+          
+          try:
+              result = crew.kickoff()
+              with open('multi-agent-collaboration-report.md', 'w') as f:
+                  f.write("# Multi-Agent Collaboration Report\n\n")
+                  f.write(str(result))
+          except Exception as e:
+              print(f"Note: Multi-agent collaboration requires API keys. Error: {e}")
+          EOF
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: multi-agent-collaboration-report
+          path: multi-agent-collaboration-report.md
+
+      - name: Create issue with results
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🤖 Multi-Agent AI Analysis Complete\n\n';
+            
+            try {
+              const report = fs.readFileSync('multi-agent-collaboration-report.md', 'utf8');
+              body += report.substring(0, 50000);
+            } catch (e) {
+              body += 'Report generation in progress or requires API configuration.\n';
+            }
+            
+            body += '\n\n---\n*Generated by AI Agent Collaboration System*';
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🤖 Weekly AI Analysis Report',
+              body: body,
+              labels: ['ai-analysis', 'automated']
+            });
